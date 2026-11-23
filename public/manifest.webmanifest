@@ -1,0 +1,9 @@
+{
+  "name": "Royal Ludo Arena",
+  "short_name": "Royal Ludo",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#351809",
+  "theme_color": "#351809"
+}
