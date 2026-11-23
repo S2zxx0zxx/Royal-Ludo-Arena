@@ -37,3 +37,10 @@ npm test
 ```
 
 No claim of production readiness or live infrastructure is made by this frontend milestone.
+
+
+## Extended UI v0.2.0 (draft)
+
+Approved images: Events, Profile, Store, Store compact, Daily Goals, and Send Gift in `public/assets/screens/*.jpg`.
+
+`public/js/expansion.js` adds semantic hit areas for new screen navigation, daily-goal actions, gift/store purchase previews, and a local-only profile editor. The coin/diamond price, level, player profile, and rewards shown in concept art are **illustrative only**. Authentication, purchases, claims, multiplayer, AI, server state, and AAB are not live. The new UI still uses baked bitmap art and must undergo real-device/mobile visual QA and component extraction before production. See `docs/EXPANSION_SCOPE.md`.
