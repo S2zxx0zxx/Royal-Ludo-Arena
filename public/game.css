@@ -452,3 +452,66 @@
   color: #fff6dc; font-weight: 800; font-size: 13px; padding: 9px 16px; border-radius: 999px;
   z-index: 350; box-shadow: 0 8px 24px rgba(0,0,0,0.65); pointer-events: none;
 }
+
+/* ============================================================================
+   V3.0.0 Unity-Feel 3D 6-Face Perspective Cube Dice & Parabolic Pawn Arcs
+   ============================================================================ */
+.rla-dice-dock {
+  perspective: 260px;
+}
+.rla-cube-3d {
+  width: 34px;
+  height: 34px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rla-cube-3d.rolling {
+  animation: rlaCubeSpin3D 0.38s linear infinite;
+}
+@keyframes rlaCubeSpin3D {
+  0%   { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  50%  { transform: rotateX(180deg) rotateY(220deg) rotateZ(90deg); }
+  100% { transform: rotateX(360deg) rotateY(440deg) rotateZ(180deg); }
+}
+.rla-cube-3d.show-1 { transform: rotateX(0deg) rotateY(0deg); }
+.rla-cube-3d.show-2 { transform: rotateX(-90deg) rotateY(0deg); }
+.rla-cube-3d.show-3 { transform: rotateY(-90deg); }
+.rla-cube-3d.show-4 { transform: rotateY(90deg); }
+.rla-cube-3d.show-5 { transform: rotateX(90deg) rotateY(0deg); }
+.rla-cube-3d.show-6 { transform: rotateY(180deg); }
+
+.rla-cube-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  background: #ffffff;
+  border: 1.5px solid #bfa068;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 4px;
+  gap: 1.5px;
+  backface-visibility: hidden;
+}
+.dice-royal-gold .rla-cube-face {
+  background: #ffe98a;
+  border-color: #fff2b2;
+}
+.dice-ruby-crimson .rla-cube-face {
+  background: #db2739;
+  border-color: #f6c44e;
+}
+.rla-cube-face.f1 { transform: rotateY(0deg) translateZ(17px); }
+.rla-cube-face.f2 { transform: rotateX(90deg) translateZ(17px); }
+.rla-cube-face.f3 { transform: rotateY(90deg) translateZ(17px); }
+.rla-cube-face.f4 { transform: rotateY(-90deg) translateZ(17px); }
+.rla-cube-face.f5 { transform: rotateX(-90deg) translateZ(17px); }
+.rla-cube-face.f6 { transform: rotateY(180deg) translateZ(17px); }
+
+/* Parabolic hop elevation + dynamic shadow expansion */
+.rla-pawn-btn.hopping {
+  transform: translate(-50%, -112%) scale(1.26) !important;
+  filter: drop-shadow(0 12px 6px rgba(0, 0, 0, 0.48));
+}

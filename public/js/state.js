@@ -41,7 +41,7 @@
   ];
 
   const DEFAULT_INBOX = [
-    { id: 'welcome-gift', title: 'Welcome to Royal Ludo Arena v2!', body: 'Server-verified welcome bonus ready to claim.', coins: 500, diamonds: 10, claimed: false, date: 'Today' }
+    { id: 'welcome-gift', title: 'Welcome to Royal Ludo Arena!', body: 'Explore the game modes and practice rewards. Live rewards require a connected game server.', coins: 500, diamonds: 10, claimed: false, date: 'Today' }
   ];
 
   const SEED_LEADERBOARD = [

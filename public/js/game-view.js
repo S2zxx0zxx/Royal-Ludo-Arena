@@ -119,10 +119,14 @@
   }
 
   function buildDiceFaceHTML(value, rolling = false) {
-    const on = new Set(PIP_MAP[value || 6] || PIP_MAP[6]);
-    let pips = '';
-    for (let i = 0; i < 9; i++) pips += `<span class="rla-pip ${on.has(i) ? 'on' : ''}"></span>`;
-    return `<div class="rla-dice-face ${rolling ? 'rolling' : ''}">${pips}</div>`;
+    const v = (value >= 1 && value <= 6) ? value : 6;
+    const face = (n) => {
+      const on = new Set(PIP_MAP[n]);
+      let pips = '';
+      for (let i = 0; i < 9; i++) pips += `<span class="rla-pip ${on.has(i) ? 'on' : ''}"></span>`;
+      return `<div class="rla-cube-face f${n}">${pips}</div>`;
+    };
+    return `<div class="rla-cube-3d show-${v} ${rolling ? 'rolling' : ''}">${face(1)}${face(2)}${face(3)}${face(4)}${face(5)}${face(6)}</div>`;
   }
 
   function formatTime(sec) {
