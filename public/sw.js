@@ -1,4 +1,4 @@
-const CACHE = 'royal-ludo-arena-v1.0.0';
+const CACHE = 'royal-ludo-arena-v2.0.0';
 const BASE = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const BASE = [
   './game.css',
   './js/sound.js',
   './js/state.js',
+  './js/realtime-client.js',
   './js/ludo-engine.js',
   './js/ludo-ai.js',
   './js/game-view.js',
@@ -14,6 +15,12 @@ const BASE = [
   './js/expansion.js',
   './assets/icons/icon.svg',
   './assets/screens/home.webp',
+  './assets/game/board-royal-walnut.webp',
+  './assets/game/pawn-red.png',
+  './assets/game/pawn-green.png',
+  './assets/game/pawn-blue.png',
+  './assets/game/pawn-yellow.png',
+  './assets/game/crown-medallion.png',
   './manifest.webmanifest'
 ];
 
@@ -31,7 +38,8 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const r = e.request;
-  if (r.method !== 'GET' || new URL(r.url).origin !== self.location.origin) return;
+  const u = new URL(r.url);
+  if (r.method !== 'GET' || u.origin !== self.location.origin || u.pathname.startsWith('/api/')) return;
   e.respondWith(
     caches.match(r).then(v => v || fetch(r).then(x => {
       if (x.ok) {

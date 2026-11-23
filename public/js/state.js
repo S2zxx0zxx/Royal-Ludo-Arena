@@ -1,16 +1,17 @@
 /**
- * Royal Ludo Arena — Persistent Player Economy, Progression, Missions & Inventory State
+ * Royal Ludo Arena v2.0.0 — Player State Store
+ * Hydrates from authoritative Node.js server when connected; falls back to local practice state when offline.
  */
 (function (global) {
   'use strict';
 
-  const STORAGE_KEY = 'rla.player.state.v1';
-  const SAVE_MATCH_KEY = 'rla.active.match.v1';
+  const STORAGE_KEY = 'rla.player.state.v2';
+  const SAVE_MATCH_KEY = 'rla.active.match.v2';
 
   const AVATARS = ['👑', '🦁', '🐯', '🦅', '🐉', '🦊', '🤖', '💎'];
 
   const BOARD_THEMES = [
-    { id: 'royal-walnut', name: 'Royal Walnut', price: 0, currency: 'coins', desc: 'Signature carved walnut & antique gold arena.' },
+    { id: 'royal-walnut', name: 'Royal Walnut 3D', price: 0, currency: 'coins', desc: 'Carved walnut wood & antique gold 3D studio arena.' },
     { id: 'emerald-palace', name: 'Emerald Palace', price: 1500, currency: 'coins', desc: 'Deep emerald velvet with regal brass accents.' },
     { id: 'midnight-gold', name: 'Midnight Gold', price: 25, currency: 'diamonds', desc: 'Obsidian midnight marble inlaid with 24K gold.' }
   ];
@@ -40,77 +41,30 @@
   ];
 
   const DEFAULT_INBOX = [
-    {
-      id: 'welcome-gift',
-      title: 'Welcome to Royal Ludo Arena!',
-      body: 'Thanks for playing! Claim your Royal Starter Bonus to jump into Classic, Quick, Rush, or Tournament matches.',
-      coins: 500,
-      diamonds: 10,
-      claimed: false,
-      date: 'Today'
-    },
-    {
-      id: 'season-28',
-      title: 'Season 28: Crown Championship',
-      body: 'Win matches to climb the Royal Leaderboard, unlock Board Themes & Dice Skins, and spin the Lucky Wheel daily!',
-      coins: 250,
-      diamonds: 0,
-      claimed: false,
-      date: 'Season 28'
-    }
+    { id: 'welcome-gift', title: 'Welcome to Royal Ludo Arena v2!', body: 'Server-verified welcome bonus ready to claim.', coins: 500, diamonds: 10, claimed: false, date: 'Today' }
   ];
 
   const SEED_LEADERBOARD = [
     { name: 'Vikram_King', avatar: '🦁', wins: 48, coins: 128500, level: 18 },
     { name: 'AanyaRoyal', avatar: '👑', wins: 41, coins: 96400, level: 15 },
     { name: 'RohanBlitz', avatar: '🐉', wins: 34, coins: 74200, level: 13 },
-    { name: 'PriyaDice', avatar: '💎', wins: 29, coins: 58900, level: 11 },
-    { name: 'Kabir_99', avatar: '🦅', wins: 22, coins: 42100, level: 9 },
-    { name: 'MeeraStar', avatar: '🦊', wins: 16, coins: 26500, level: 7 },
-    { name: 'ArjunPro', avatar: '🐯', wins: 11, coins: 14800, level: 5 }
+    { name: 'PriyaDice', avatar: '💎', wins: 29, coins: 58900, level: 11 }
   ];
 
   function todayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return new Date().toISOString().slice(0, 10);
   }
 
   function createDefaultState() {
     return {
-      profile: {
-        id: 'RL782346',
-        name: 'Satzzxzxx',
-        bio: 'Play • Win • Repeat!',
-        avatar: '👑'
-      },
-      currency: {
-        coins: 2250,
-        diamonds: 50
-      },
-      progression: {
-        level: 1,
-        xp: 40
-      },
-      stats: {
-        gamesPlayed: 0,
-        wins: 0,
-        captures: 0,
-        sixesRolled: 0,
-        tournamentsWon: 0,
-        winStreak: 0,
-        bestStreak: 0
-      },
-      dailyReward: {
-        streakDay: 0,
-        lastClaimDate: ''
-      },
-      luckySpin: {
-        lastFreeSpinDate: '',
-        totalSpins: 0
-      },
-      freeChest: {
-        lastClaimTs: 0
-      },
+      serverSynced: false,
+      profile: { id: 'RL782346', name: 'Satzzxzxx', bio: 'Play • Win • Repeat!', avatar: '👑' },
+      currency: { coins: 2250, diamonds: 50 },
+      progression: { level: 1, xp: 40 },
+      stats: { gamesPlayed: 0, wins: 0, captures: 0, sixesRolled: 0, tournamentsWon: 0, winStreak: 0, bestStreak: 0 },
+      dailyReward: { streakDay: 0, lastClaimDate: '' },
+      luckySpin: { lastFreeSpinDate: '', totalSpins: 0 },
+      freeChest: { lastClaimTs: 0 },
       missionsDate: todayKey(),
       missions: JSON.parse(JSON.stringify(DEFAULT_MISSIONS)),
       inbox: JSON.parse(JSON.stringify(DEFAULT_INBOX)),
@@ -120,12 +74,7 @@
         ownedDice: ['classic-ivory'],
         activeDice: 'classic-ivory'
       },
-      settings: {
-        sfx: true,
-        haptics: true,
-        fastSpeed: false,
-        autoSingleMove: true
-      }
+      settings: { sfx: true, haptics: true, fastSpeed: false, autoSingleMove: true }
     };
   }
 
@@ -136,18 +85,9 @@
     const base = createDefaultState();
     try {
       const raw = global.localStorage && global.localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        // Migrate legacy v0.2.0 profile if present
-        const legacy = global.localStorage && global.localStorage.getItem('rla.ui.profile.v1');
-        if (legacy) {
-          const parsedLegacy = JSON.parse(legacy);
-          if (parsedLegacy && typeof parsedLegacy.name === 'string') base.profile.name = parsedLegacy.name.slice(0, 22);
-          if (parsedLegacy && typeof parsedLegacy.bio === 'string') base.profile.bio = parsedLegacy.bio.slice(0, 70);
-        }
-        return base;
-      }
+      if (!raw) return base;
       const parsed = JSON.parse(raw);
-      const merged = {
+      return {
         ...base,
         ...parsed,
         profile: { ...base.profile, ...(parsed.profile || {}) },
@@ -160,11 +100,6 @@
         inventory: { ...base.inventory, ...(parsed.inventory || {}) },
         settings: { ...base.settings, ...(parsed.settings || {}) }
       };
-      if (merged.missionsDate !== todayKey()) {
-        merged.missionsDate = todayKey();
-        merged.missions = JSON.parse(JSON.stringify(DEFAULT_MISSIONS));
-      }
-      return merged;
     } catch {
       return base;
     }
@@ -174,15 +109,9 @@
     try {
       if (global.localStorage) {
         global.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        global.localStorage.setItem('rla.ui.profile.v1', JSON.stringify({
-          name: data.profile.name,
-          bio: data.profile.bio
-        }));
       }
     } catch {}
-    listeners.forEach(fn => {
-      try { fn(data); } catch {}
-    });
+    listeners.forEach(fn => { try { fn(data); } catch {} });
   }
 
   function xpForNextLevel(level) {
@@ -200,12 +129,23 @@
       return () => listeners.delete(fn);
     },
 
-    get() {
-      return data;
-    },
+    get() { return data; },
+    getSettings() { return data.settings; },
 
-    getSettings() {
-      return data.settings;
+    hydrateFromServer(serverUser) {
+      if (!serverUser) return;
+      data.serverSynced = true;
+      data.profile = { ...data.profile, ...serverUser.profile };
+      data.currency = { ...serverUser.currency };
+      data.progression = { ...serverUser.progression };
+      data.stats = { ...serverUser.stats };
+      data.dailyReward = { ...serverUser.dailyReward };
+      data.luckySpin = { ...serverUser.luckySpin };
+      data.freeChest = { ...serverUser.freeChest };
+      data.missions = serverUser.missions || data.missions;
+      data.inbox = serverUser.inbox || data.inbox;
+      data.inventory = { ...data.inventory, ...serverUser.inventory };
+      save();
     },
 
     updateSettings(patch) {
@@ -214,15 +154,9 @@
     },
 
     updateProfile(patch) {
-      if (typeof patch.name === 'string' && patch.name.trim()) {
-        data.profile.name = patch.name.trim().slice(0, 22);
-      }
-      if (typeof patch.bio === 'string') {
-        data.profile.bio = patch.bio.trim().slice(0, 70);
-      }
-      if (typeof patch.avatar === 'string' && AVATARS.includes(patch.avatar)) {
-        data.profile.avatar = patch.avatar;
-      }
+      if (typeof patch.name === 'string' && patch.name.trim()) data.profile.name = patch.name.trim().slice(0, 22);
+      if (typeof patch.bio === 'string') data.profile.bio = patch.bio.trim().slice(0, 70);
+      if (typeof patch.avatar === 'string' && AVATARS.includes(patch.avatar)) data.profile.avatar = patch.avatar;
       save();
     },
 
@@ -278,9 +212,7 @@
     },
 
     claimAllMissions() {
-      let totalCoins = 0;
-      let totalDiamonds = 0;
-      let count = 0;
+      let totalCoins = 0, totalDiamonds = 0, count = 0;
       for (const m of data.missions) {
         if (!m.claimed && m.progress >= m.target) {
           m.claimed = true;
@@ -298,9 +230,7 @@
       return { count, coins: totalCoins, diamonds: totalDiamonds };
     },
 
-    canClaimDailyReward() {
-      return data.dailyReward.lastClaimDate !== todayKey();
-    },
+    canClaimDailyReward() { return data.dailyReward.lastClaimDate !== todayKey(); },
 
     claimDailyReward() {
       if (!this.canClaimDailyReward()) return null;
@@ -315,9 +245,7 @@
       return reward;
     },
 
-    canFreeSpin() {
-      return data.luckySpin.lastFreeSpinDate !== todayKey();
-    },
+    canFreeSpin() { return data.luckySpin.lastFreeSpinDate !== todayKey(); },
 
     recordSpin(usedFree, coinsWon, diamondsWon) {
       if (usedFree) data.luckySpin.lastFreeSpinDate = todayKey();
@@ -328,18 +256,15 @@
     },
 
     freeChestCooldownMs() {
-      const cooldown = 30 * 60 * 1000; // 30 minutes
-      const elapsed = Date.now() - (data.freeChest.lastClaimTs || 0);
-      return Math.max(0, cooldown - elapsed);
+      return Math.max(0, 30 * 60 * 1000 - (Date.now() - (data.freeChest.lastClaimTs || 0)));
     },
 
     claimFreeChest() {
       if (this.freeChestCooldownMs() > 0) return null;
       data.freeChest.lastClaimTs = Date.now();
-      const coins = 350;
-      data.currency.coins += coins;
+      data.currency.coins += 350;
       save();
-      return { coins };
+      return { coins: 350 };
     },
 
     claimInbox(id) {
@@ -352,21 +277,13 @@
       return { coins: msg.coins || 0, diamonds: msg.diamonds || 0 };
     },
 
-    unreadInboxCount() {
-      return data.inbox.filter(m => !m.claimed).length;
-    },
-
     buyOrEquipBoard(id) {
       const item = BOARD_THEMES.find(b => b.id === id);
       if (!item) return { ok: false, reason: 'Not found' };
       if (data.inventory.ownedBoards.includes(id)) {
-        data.inventory.activeBoard = id;
-        save();
-        return { ok: true, equipped: true };
+        data.inventory.activeBoard = id; save(); return { ok: true, equipped: true };
       }
-      const ok = item.currency === 'diamonds'
-        ? this.spendCurrency(0, item.price)
-        : this.spendCurrency(item.price, 0);
+      const ok = item.currency === 'diamonds' ? this.spendCurrency(0, item.price) : this.spendCurrency(item.price, 0);
       if (!ok) return { ok: false, reason: `Not enough ${item.currency}` };
       data.inventory.ownedBoards.push(id);
       data.inventory.activeBoard = id;
@@ -378,13 +295,9 @@
       const item = DICE_SKINS.find(d => d.id === id);
       if (!item) return { ok: false, reason: 'Not found' };
       if (data.inventory.ownedDice.includes(id)) {
-        data.inventory.activeDice = id;
-        save();
-        return { ok: true, equipped: true };
+        data.inventory.activeDice = id; save(); return { ok: true, equipped: true };
       }
-      const ok = item.currency === 'diamonds'
-        ? this.spendCurrency(0, item.price)
-        : this.spendCurrency(item.price, 0);
+      const ok = item.currency === 'diamonds' ? this.spendCurrency(0, item.price) : this.spendCurrency(item.price, 0);
       if (!ok) return { ok: false, reason: `Not enough ${item.currency}` };
       data.inventory.ownedDice.push(id);
       data.inventory.activeDice = id;
@@ -415,14 +328,7 @@
     },
 
     getLeaderboard() {
-      const me = {
-        name: data.profile.name,
-        avatar: data.profile.avatar,
-        wins: data.stats.wins,
-        coins: data.currency.coins,
-        level: data.progression.level,
-        isSelf: true
-      };
+      const me = { name: data.profile.name, avatar: data.profile.avatar, wins: data.stats.wins, coins: data.currency.coins, level: data.progression.level, isSelf: true };
       return [...SEED_LEADERBOARD, me].sort((a, b) => b.wins - a.wins || b.coins - a.coins);
     },
 
@@ -439,9 +345,7 @@
       try {
         const raw = global.localStorage && global.localStorage.getItem(SAVE_MATCH_KEY);
         return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
+      } catch { return null; }
     },
 
     resetAll() {

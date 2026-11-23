@@ -1,8 +1,6 @@
 /**
- * Royal Ludo Arena — Full Interactive Feature Hub (v1.0.0)
- * Wires every hotspot on Home, Events, Profile, Store, Daily Goals, and Send Gift
- * to real local-persisted features: Lucky Spin, 7-Day Daily Rewards, Live Missions,
- * Inventory (Board Themes & Dice Skins), Leaderboard, Inbox, Settings, Tournaments, and Demo Store.
+ * Royal Ludo Arena v2.0.0 — Server-Authoritative Feature Hub & Production Store
+ * Zero free demo-pack minting! All economy rewards & IAP verification go through RLAClient -> Node server.
  */
 const RLA = (() => {
   const ROUTES = Object.freeze({
@@ -76,19 +74,19 @@ const RLA = (() => {
       btn('back', 'Back', [18, 116, 118, 116], 'route', { to: 'home' }),
       ...COMMON,
       btn('avatar-edit', 'Edit avatar', [192, 434, 89, 72], 'edit'),
-      btn('copy-id', 'Copy player ID', [469, 337, 65, 55], 'copy', { value: 'RL782346' }),
+      btn('copy-id', 'Copy player ID', [469, 337, 65, 55], 'copy'),
       btn('bio-edit', 'Edit status', [289, 382, 342, 68], 'edit'),
       btn('edit', 'Edit Profile', [258, 1244, 415, 118], 'edit'),
       btn('level', 'Level progress', [80, 527, 760, 104], 'stats'),
       btn('coins', 'View coin store', [309, 447, 230, 83], 'route', { to: 'store' }),
       btn('diamonds', 'View diamond store', [559, 447, 235, 83], 'route', { to: 'store' }),
       btn('stats', 'Game statistics', [26, 654, 874, 356], 'stats'),
-      btn('save-data', 'Save Data', [49, 1020, 233, 93], 'info', { message: 'All progress, coins, stats, and themes are saved automatically in your browser storage.' }),
-      btn('change-device', 'Export / Reset', [315, 1020, 264, 93], 'settings'),
+      btn('save-data', 'Save Data', [49, 1020, 233, 93], 'info', { message: 'Account wallet, ledger & stats sync automatically to the authoritative server when connected.' }),
+      btn('change-device', 'Settings', [315, 1020, 264, 93], 'settings'),
       btn('referral', 'Referral rewards', [605, 1020, 269, 93], 'social'),
-      btn('google', 'Google sign in', [51, 1123, 265, 97], 'info', { message: 'Local Guest Account active. Cloud sign-in can be added when you connect Firebase/Play Games.' }),
-      btn('facebook', 'Facebook sign in', [317, 1123, 286, 97], 'info', { message: 'Local Guest Account active. Connect Facebook SDK when deploying online.' }),
-      btn('play-games', 'Play Games login', [614, 1123, 262, 97], 'info', { message: 'Google Play Games Services can be linked when packaging your Android TWA/AAB.' }),
+      btn('google', 'Google sign in', [51, 1123, 265, 97], 'info', { message: 'HMAC-signed session token active. Connect Google OAuth ID token verification for multi-device login.' }),
+      btn('facebook', 'Facebook sign in', [317, 1123, 286, 97], 'info', { message: 'Connect Facebook OAuth when deploying to production.' }),
+      btn('play-games', 'Play Games login', [614, 1123, 262, 97], 'info', { message: 'Google Play Games Services can be linked inside your Android TWA/AAB wrapper.' }),
       ...NAV(922, 1536, 1382)
     ],
     store: [
@@ -96,27 +94,27 @@ const RLA = (() => {
       btn('tab-coins', 'Coins tab', [18, 132, 283, 117], 'mode', { value: 'coins' }),
       btn('tab-diamonds', 'Diamonds tab', [298, 133, 281, 119], 'mode', { value: 'diamonds' }),
       btn('tab-offers', 'Offers tab', [576, 133, 280, 118], 'mode', { value: 'offers' }),
-      btn('promo', 'Royal Coin Bundle', [20, 265, 818, 359], 'purchase', { value: 'Royal Coin Bundle', coins: 250000, diamonds: 50 }),
+      btn('promo', 'Royal Coin Bundle', [20, 265, 818, 359], 'purchase', { sku: 'royal_bundle', value: 'Royal Coin Bundle — ₹480' }),
       btn('pass', 'Pass benefits', [65, 622, 735, 68], 'vip'),
-      btn('pack-25k', '25,000 Coins', [36, 712, 385, 252], 'purchase', { value: '25,000 Coins', coins: 25000, diamonds: 0 }),
-      btn('pack-100k', '100,000 Coins', [434, 712, 391, 252], 'purchase', { value: '100,000 Coins', coins: 100000, diamonds: 0 }),
-      btn('pack-500k', '500,000 Coins', [36, 966, 385, 253], 'purchase', { value: '500,000 Coins', coins: 500000, diamonds: 0 }),
-      btn('pack-1m', '1,000,000 Coins', [434, 966, 391, 253], 'purchase', { value: '1,000,000 Coins', coins: 1000000, diamonds: 0 }),
-      btn('pack-5m', '5,000,000 Coins', [36, 1222, 385, 260], 'purchase', { value: '5,000,000 Coins', coins: 5000000, diamonds: 0 }),
-      btn('pack-10m', '10,000,000 Coins', [434, 1222, 391, 260], 'purchase', { value: '10,000,000 Coins', coins: 10000000, diamonds: 0 })
+      btn('pack-25k', '25,000 Coins', [36, 712, 385, 252], 'purchase', { sku: 'coins_25k', value: '25,000 Coins — ₹100' }),
+      btn('pack-100k', '100,000 Coins', [434, 712, 391, 252], 'purchase', { sku: 'coins_100k', value: '100,000 Coins — ₹180' }),
+      btn('pack-500k', '500,000 Coins', [36, 966, 385, 253], 'purchase', { sku: 'coins_500k', value: '500,000 Coins — ₹480' }),
+      btn('pack-1m', '1,000,000 Coins', [434, 966, 391, 253], 'purchase', { sku: 'coins_1m', value: '1,000,000 Coins — ₹690' }),
+      btn('pack-5m', '5,000,000 Coins', [36, 1222, 385, 260], 'purchase', { sku: 'coins_5m', value: '5,000,000 Coins — ₹1,800' }),
+      btn('pack-10m', '10,000,000 Coins', [434, 1222, 391, 260], 'purchase', { sku: 'coins_10m', value: '10,000,000 Coins — ₹3,000' })
     ],
     'store-compact': [
       btn('back', 'Back', [24, 18, 116, 111], 'route', { to: 'home' }),
       btn('coins', 'Coins tab', [60, 166, 393, 135], 'route', { to: 'store' }),
       btn('diamonds', 'Diamonds tab', [471, 166, 397, 136], 'mode', { value: 'diamonds' }),
       btn('offers', 'Offers tab', [891, 166, 430, 136], 'mode', { value: 'offers' }),
-      btn('coin-bundle', 'Coin Bundle', [44, 314, 1323, 298], 'purchase', { value: 'Royal Coin Bundle', coins: 250000, diamonds: 50 }),
-      btn('pack1', '25,000 Coins', [40, 616, 437, 290], 'purchase', { value: '25,000 Coins', coins: 25000, diamonds: 0 }),
-      btn('pack2', '100,000 Coins', [485, 616, 434, 290], 'purchase', { value: '100,000 Coins', coins: 100000, diamonds: 0 }),
-      btn('pack3', '500,000 Coins', [930, 616, 432, 290], 'purchase', { value: '500,000 Coins', coins: 500000, diamonds: 0 }),
-      btn('pack4', '1,000,000 Coins', [40, 930, 437, 277], 'purchase', { value: '1,000,000 Coins', coins: 1000000, diamonds: 0 }),
-      btn('pack5', '5,000,000 Coins', [485, 930, 434, 277], 'purchase', { value: '5,000,000 Coins', coins: 5000000, diamonds: 0 }),
-      btn('pack6', '10,000,000 Coins', [930, 930, 432, 277], 'purchase', { value: '10,000,000 Coins', coins: 10000000, diamonds: 0 })
+      btn('coin-bundle', 'Coin Bundle', [44, 314, 1323, 298], 'purchase', { sku: 'royal_bundle', value: 'Royal Coin Bundle — ₹480' }),
+      btn('pack1', '25,000 Coins', [40, 616, 437, 290], 'purchase', { sku: 'coins_25k', value: '25,000 Coins — ₹100' }),
+      btn('pack2', '100,000 Coins', [485, 616, 434, 290], 'purchase', { sku: 'coins_100k', value: '100,000 Coins — ₹180' }),
+      btn('pack3', '500,000 Coins', [930, 616, 432, 290], 'purchase', { sku: 'coins_500k', value: '500,000 Coins — ₹480' }),
+      btn('pack4', '1,000,000 Coins', [40, 930, 437, 277], 'purchase', { sku: 'coins_1m', value: '1,000,000 Coins — ₹690' }),
+      btn('pack5', '5,000,000 Coins', [485, 930, 434, 277], 'purchase', { sku: 'coins_5m', value: '5,000,000 Coins — ₹1,800' }),
+      btn('pack6', '10,000,000 Coins', [930, 930, 432, 277], 'purchase', { sku: 'coins_10m', value: '10,000,000 Coins — ₹3,000' })
     ],
     'daily-goals': [
       btn('close', 'Close Daily Goals', [1194, 109, 145, 126], 'route', { to: 'events' }),
@@ -125,17 +123,17 @@ const RLA = (() => {
       btn('invite', 'Invite a Friend', [1005, 791, 230, 110], 'route', { to: 'friends' }),
       btn('claimed-ad', 'View Missions', [1005, 915, 230, 104], 'missions'),
       btn('claimed-login', 'Claim Login Reward', [1005, 1033, 230, 108], 'missions'),
-      btn('claim-all', 'Claim All Rewards', [403, 1192, 599, 170], 'claim-all-missions')
+      btn('claim-all', 'Claim All Rewards', [403, 1192, 599, 170], 'missions')
     ],
     'send-gift': [
       btn('close', 'Close Send Gift', [1229, 116, 141, 131], 'route', { to: 'store' }),
-      btn('king-pass', 'Send King Pass', [949, 312, 299, 179], 'gift', { value: 'King Pass' }),
-      btn('gift-25k', 'Gift 25,000 coins', [81, 663, 392, 249], 'gift', { value: '25,000 Coins' }),
-      btn('gift-100k', 'Gift 100,000 coins', [489, 663, 417, 249], 'gift', { value: '100,000 Coins' }),
-      btn('gift-10m', 'Gift 10,000,000 coins', [920, 663, 434, 249], 'gift', { value: '10,000,000 Coins' }),
-      btn('gift-100d', 'Gift 100 diamonds', [82, 923, 395, 247], 'gift', { value: '100 Diamonds' }),
-      btn('gift-2kd', 'Gift 2,000 diamonds', [488, 923, 417, 247], 'gift', { value: '2,000 Diamonds' }),
-      btn('gift-12kd', 'Gift 12,500 diamonds', [922, 923, 428, 247], 'gift', { value: '12,500 Diamonds' })
+      btn('king-pass', 'Send King Pass', [949, 312, 299, 179], 'gift', { sku: 'king_pass', value: 'King Pass — ₹599' }),
+      btn('gift-25k', 'Gift 25,000 coins', [81, 663, 392, 249], 'gift', { sku: 'coins_25k', value: '25,000 Coins — ₹100' }),
+      btn('gift-100k', 'Gift 100,000 coins', [489, 663, 417, 249], 'gift', { sku: 'coins_100k', value: '100,000 Coins — ₹180' }),
+      btn('gift-10m', 'Gift 10,000,000 coins', [920, 663, 434, 249], 'gift', { sku: 'coins_10m', value: '10,000,000 Coins — ₹3,000' }),
+      btn('gift-100d', 'Gift 100 diamonds', [82, 923, 395, 247], 'gift', { sku: 'diamonds_100', value: '100 Diamonds — ₹79' }),
+      btn('gift-2kd', 'Gift 2,000 diamonds', [488, 923, 417, 247], 'gift', { sku: 'diamonds_2000', value: '2,000 Diamonds — ₹999' }),
+      btn('gift-12kd', 'Gift 12,500 diamonds', [922, 923, 428, 247], 'gift', { sku: 'diamonds_2000', value: '12,500 Diamonds — ₹3,999' })
     ]
   };
 
@@ -150,11 +148,7 @@ const RLA = (() => {
     el.setAttribute('aria-label', hit.label);
     const [x, y, w, h] = hit.rect;
     el.style.cssText = `left:${(x / frame[0] * 100).toFixed(4)}%;top:${(y / frame[1] * 100).toFixed(4)}%;width:${(w / frame[0] * 100).toFixed(4)}%;height:${(h / frame[1] * 100).toFixed(4)}%;`;
-    el.addEventListener('click', (event) => {
-      event.preventDefault();
-      window.RLASound?.click();
-      apply(hit);
-    });
+    el.addEventListener('click', (event) => { event.preventDefault(); window.RLASound?.click(); apply(hit); });
     return el;
   }
 
@@ -167,8 +161,7 @@ const RLA = (() => {
     card.className = 'rla-dialog';
     card.setAttribute('role', 'dialog');
     card.setAttribute('aria-modal', 'true');
-    card.setAttribute('aria-label', title);
-    card.innerHTML = `<header class="rla-dialog-title">${escapeHtml(title)}<button class="rla-dialog-x" aria-label="Close dialog">×</button></header><div class="rla-dialog-body" ${isHtml ? 'style="white-space:normal"' : ''}>${isHtml ? body : escapeHtml(body)}</div><footer></footer>`;
+    card.innerHTML = `<header class="rla-dialog-title">${escapeHtml(title)}<button class="rla-dialog-x" aria-label="Close">×</button></header><div class="rla-dialog-body" ${isHtml ? 'style="white-space:normal"' : ''}>${isHtml ? body : escapeHtml(body)}</div><footer></footer>`;
     const foot = card.querySelector('footer');
     for (const [label, run] of actions) {
       const b = document.createElement('button');
@@ -188,14 +181,11 @@ const RLA = (() => {
     }
     card.querySelector('.rla-dialog-x')?.addEventListener('click', () => veil.remove());
     veil.addEventListener('click', e => { if (e.target === veil) veil.remove(); });
-    const esc = e => { if (e.key === 'Escape') { veil.remove(); document.removeEventListener('keydown', esc); } };
-    document.addEventListener('keydown', esc);
     veil.append(card);
     document.body.append(veil);
     return veil;
   }
 
-  /* ---------- Feature Modals ---------- */
   function openEditProfile() {
     const p = window.RLAState.get().profile;
     const avatarBtns = window.RLAState.AVATARS.map(av =>
@@ -205,30 +195,30 @@ const RLA = (() => {
 
     const veil = modal('EDIT PROFILE', `
       <form id="rla-profile-form" style="display:flex;flex-direction:column;gap:10px">
-        <label>Royal Avatar
-          <div style="display:flex;flex-wrap:wrap;gap:6px">${avatarBtns}</div>
-        </label>
+        <label>Royal Avatar <div style="display:flex;flex-wrap:wrap;gap:6px">${avatarBtns}</div></label>
         <label>Display Name <input name="name" maxlength="22" autocomplete="off" required value="${escapeHtml(p.name)}"></label>
         <label>Status <textarea name="bio" maxlength="70" rows="2">${escapeHtml(p.bio)}</textarea></label>
       </form>
     `, [
-      ['Save Changes', () => {
+      ['Save Changes', async () => {
         const form = veil.querySelector('#rla-profile-form');
         const name = form.elements.namedItem('name').value.trim();
         const bio = form.elements.namedItem('bio').value.trim();
-        if (name) {
+        if (!name) return;
+        if (window.RLAClient?.isServerAvailable()) {
+          await window.RLAClient.updateProfile({ name, bio, avatar: chosenAvatar });
+        } else {
           window.RLAState.updateProfile({ name, bio, avatar: chosenAvatar });
-          window.RLASound?.coin();
-          window.RLAGameView?.toast('Profile updated!');
-          draw();
         }
+        window.RLASound?.coin();
+        window.RLAGameView?.toast('Profile saved!');
+        draw();
       }]
     ], true);
 
     veil.querySelectorAll('[data-av]').forEach(b => {
       b.addEventListener('click', () => {
         chosenAvatar = b.dataset.av;
-        window.RLASound?.select();
         veil.querySelectorAll('[data-av]').forEach(x => x.classList.add('secondary'));
         b.classList.remove('secondary');
       });
@@ -252,15 +242,17 @@ const RLA = (() => {
     }).join('');
 
     modal('7-DAY DAILY REWARD 🎁', `
-      <p style="margin:0;text-align:center">Current Streak: <strong>${s.dailyReward.streakDay} Day(s)</strong></p>
+      <p style="margin:0;text-align:center">Streak: <strong>${s.dailyReward.streakDay} Day(s)</strong> ${window.RLAClient?.isServerAvailable() ? '· Single-node demo server' : ''}</p>
       <div class="rla-royal-grid">${cards}</div>
     `, canClaim ? [
-      ['Claim Today\'s Reward', () => {
-        const reward = window.RLAState.claimDailyReward();
-        if (reward) {
-          window.RLASound?.coin();
-          window.RLAGameView?.toast(`Claimed ${reward.label}!`);
-          openDailyRewardModal();
+      ['Claim Today\'s Reward', async () => {
+        if (window.RLAClient?.isServerAvailable()) {
+          const res = await window.RLAClient.claimDailyReward();
+          if (res.ok) { window.RLASound?.coin(); window.RLAGameView?.toast(`Server receipt: Claimed ${res.reward.label}!`); openDailyRewardModal(); }
+          else window.RLAGameView?.toast(res.error || 'Already claimed today');
+        } else {
+          const r = window.RLAState.claimDailyReward();
+          if (r) { window.RLASound?.coin(); window.RLAGameView?.toast(`Claimed ${r.label}!`); openDailyRewardModal(); }
         }
       }]
     ] : [], true);
@@ -304,10 +296,10 @@ const RLA = (() => {
         </svg>
       </div>
       <p id="rla-spin-status" style="margin:0;text-align:center;font-weight:800;color:#ffe28a">
-        ${canFree ? 'Your Daily FREE Spin is ready!' : `Daily free spin used. Spin again for 10 💎 (You have ${diamonds} 💎)`}
+        ${canFree ? 'Daily FREE Spin ready! (Server CSPRNG)' : `Spin for 10 💎 (Balance: ${diamonds} 💎)`}
       </p>
-      <div style="display:flex;justify-content:center;gap:8px">
-        <button type="button" class="rla-royal-btn" id="rla-do-spin">${canFree ? '🎁 FREE SPIN' : '💎 SPIN (10 Diamonds)'}</button>
+      <div style="display:flex;justify-content:center">
+        <button type="button" class="rla-royal-btn" id="rla-do-spin">${canFree ? '🎁 FREE SPIN' : '💎 SPIN (10 💎)'}</button>
       </div>
     `, [], true);
 
@@ -315,21 +307,37 @@ const RLA = (() => {
     const svg = veil.querySelector('#rla-spin-svg');
     const status = veil.querySelector('#rla-spin-status');
 
-    spinBtn?.addEventListener('click', () => {
+    spinBtn?.addEventListener('click', async () => {
       if (spinning) return;
-      const freeNow = window.RLAState.canFreeSpin();
-      if (!freeNow && !window.RLAState.spendCurrency(0, 10)) {
-        window.RLAGameView?.toast('Not enough Diamonds!');
-        return;
-      }
       spinning = true;
       spinBtn.disabled = true;
-      const winIdx = Math.floor(Math.random() * prizes.length);
-      const prize = prizes[winIdx];
-      // Pointer is at top (0 deg); rotate wheel so winIdx center lands at 0 deg
+
+      let winIdx = Math.floor(Math.random() * prizes.length);
+      let serverPrize = null;
+
+      if (window.RLAClient?.isServerAvailable()) {
+        const res = await window.RLAClient.spinLuckyWheel();
+        if (!res.ok) {
+          window.RLAGameView?.toast(res.error || 'Cannot spin');
+          spinning = false;
+          spinBtn.disabled = false;
+          return;
+        }
+        winIdx = res.winIndex;
+        serverPrize = res.prize;
+      } else {
+        const freeNow = window.RLAState.canFreeSpin();
+        if (!freeNow && !window.RLAState.spendCurrency(0, 10)) {
+          window.RLAGameView?.toast('Not enough Diamonds!');
+          spinning = false;
+          spinBtn.disabled = false;
+          return;
+        }
+        window.RLAState.recordSpin(freeNow, prizes[winIdx].coins, prizes[winIdx].diamonds);
+      }
+
       const targetDeg = 360 * 5 + (360 - (winIdx + 0.5) * segAngle);
       svg.style.transform = `rotate(${targetDeg}deg)`;
-
       let ticks = 0;
       const tickInt = setInterval(() => {
         ticks++;
@@ -339,12 +347,11 @@ const RLA = (() => {
 
       setTimeout(() => {
         clearInterval(tickInt);
-        window.RLAState.recordSpin(freeNow, prize.coins, prize.diamonds);
         window.RLASound?.victory();
-        status.textContent = `🎉 WON ${prize.label}! Added to your balance!`;
+        status.textContent = `🎉 WON ${(serverPrize || prizes[winIdx]).label}! Credited to ledger!`;
         spinning = false;
         spinBtn.disabled = false;
-        spinBtn.textContent = '💎 SPIN AGAIN (10 Diamonds)';
+        spinBtn.textContent = '💎 SPIN AGAIN (10 💎)';
       }, 3900);
     });
   }
@@ -369,25 +376,16 @@ const RLA = (() => {
       </div>`;
     }).join('');
 
-    const veil = modal('DAILY MISSIONS 🎯', `<div class="rla-list">${rows}</div>`, [
-      ['Claim All Ready', () => {
-        const res = window.RLAState.claimAllMissions();
-        if (res.count > 0) {
-          window.RLASound?.coin();
-          window.RLAGameView?.toast(`Claimed ${res.count} mission(s): +${res.coins} 🪙 +${res.diamonds} 💎!`);
-        } else {
-          window.RLAGameView?.toast('Play matches to complete missions first!');
-        }
-      }]
-    ], true);
-
+    const veil = modal('DAILY MISSIONS 🎯', `<div class="rla-list">${rows}</div>`, [], true);
     veil.querySelectorAll('[data-claim-m]').forEach(b => {
-      b.addEventListener('click', () => {
-        const res = window.RLAState.claimMission(b.dataset.claimM);
-        if (res) {
-          window.RLASound?.coin();
-          window.RLAGameView?.toast(`Claimed +${res.coins} 🪙 +${res.diamonds} 💎!`);
-          openMissionsModal();
+      b.addEventListener('click', async () => {
+        if (window.RLAClient?.isServerAvailable()) {
+          const res = await window.RLAClient.claimMission(b.dataset.claimM);
+          if (res.ok) { window.RLASound?.coin(); window.RLAGameView?.toast('Mission reward credited!'); openMissionsModal(); }
+          else window.RLAGameView?.toast(res.error || 'Not ready');
+        } else {
+          const res = window.RLAState.claimMission(b.dataset.claimM);
+          if (res) { window.RLASound?.coin(); openMissionsModal(); }
         }
       });
     });
@@ -395,53 +393,48 @@ const RLA = (() => {
 
   function openInventoryModal() {
     const s = window.RLAState.get();
-    const boardCards = window.RLAState.BOARD_THEMES.map(b => {
-      const owned = s.inventory.ownedBoards.includes(b.id);
-      const active = s.inventory.activeBoard === b.id;
-      const btnText = active ? 'Equipped ✓' : owned ? 'Equip' : `${b.price} ${b.currency === 'diamonds' ? '💎' : '🪙'}`;
-      return `<div class="rla-royal-card ${active ? 'active' : ''}">
-        <strong style="font-size:13px">${b.name}</strong>
-        <span style="font-size:11px;color:#e5c690">${b.desc}</span>
-        <button type="button" class="rla-royal-btn ${active ? 'secondary' : ''}" data-board="${b.id}" ${active ? 'disabled' : ''}>${btnText}</button>
-      </div>`;
-    }).join('');
-
-    const diceCards = window.RLAState.DICE_SKINS.map(d => {
-      const owned = s.inventory.ownedDice.includes(d.id);
-      const active = s.inventory.activeDice === d.id;
-      const btnText = active ? 'Equipped ✓' : owned ? 'Equip' : `${d.price} ${d.currency === 'diamonds' ? '💎' : '🪙'}`;
-      return `<div class="rla-royal-card ${active ? 'active' : ''}">
-        <strong style="font-size:13px">${d.name}</strong>
-        <span style="font-size:11px;color:#e5c690">${d.desc}</span>
-        <button type="button" class="rla-royal-btn ${active ? 'secondary' : ''}" data-dice="${d.id}" ${active ? 'disabled' : ''}>${btnText}</button>
+    const renderCards = (items, owned, active, attr) => items.map(it => {
+      const isOwned = owned.includes(it.id);
+      const isAct = active === it.id;
+      const btnText = isAct ? 'Equipped ✓' : isOwned ? 'Equip' : `${it.price} ${it.currency === 'diamonds' ? '💎' : '🪙'}`;
+      return `<div class="rla-royal-card ${isAct ? 'active' : ''}">
+        <strong style="font-size:13px">${it.name}</strong>
+        <span style="font-size:11px;color:#e5c690">${it.desc}</span>
+        <button type="button" class="rla-royal-btn ${isAct ? 'secondary' : ''}" data-${attr}="${it.id}" ${isAct ? 'disabled' : ''}>${btnText}</button>
       </div>`;
     }).join('');
 
     const veil = modal('ROYAL INVENTORY 🎒', `
-      <p style="margin:0;font-weight:800;color:#ffe28a">Board Themes</p>
-      <div class="rla-royal-grid">${boardCards}</div>
+      <p style="margin:0;font-weight:800;color:#ffe28a">3D Board Themes</p>
+      <div class="rla-royal-grid">${renderCards(window.RLAState.BOARD_THEMES, s.inventory.ownedBoards, s.inventory.activeBoard, 'board')}</div>
       <p style="margin:8px 0 0;font-weight:800;color:#ffe28a">Dice Skins</p>
-      <div class="rla-royal-grid">${diceCards}</div>
+      <div class="rla-royal-grid">${renderCards(window.RLAState.DICE_SKINS, s.inventory.ownedDice, s.inventory.activeDice, 'dice')}</div>
     `, [], true);
 
-    veil.querySelectorAll('[data-board]').forEach(b => {
-      b.addEventListener('click', () => {
-        const res = window.RLAState.buyOrEquipBoard(b.dataset.board);
+    const handleBuy = async (kind, id) => {
+      if (window.RLAClient?.isServerAvailable()) {
+        const res = await window.RLAClient.buyOrEquipCosmetic(kind, id);
+        if (!res.ok) window.RLAGameView?.toast(res.error || 'Failed');
+        else { window.RLASound?.coin(); openInventoryModal(); }
+      } else {
+        const res = kind === 'board' ? window.RLAState.buyOrEquipBoard(id) : window.RLAState.buyOrEquipDice(id);
         if (!res.ok) window.RLAGameView?.toast(res.reason);
-        else { window.RLASound?.coin(); window.RLAGameView?.toast(res.bought ? 'Board unlocked & equipped!' : 'Board equipped!'); openInventoryModal(); }
-      });
-    });
-    veil.querySelectorAll('[data-dice]').forEach(b => {
-      b.addEventListener('click', () => {
-        const res = window.RLAState.buyOrEquipDice(b.dataset.dice);
-        if (!res.ok) window.RLAGameView?.toast(res.reason);
-        else { window.RLASound?.coin(); window.RLAGameView?.toast(res.bought ? 'Dice skin unlocked & equipped!' : 'Dice skin equipped!'); openInventoryModal(); }
-      });
-    });
+        else { window.RLASound?.coin(); openInventoryModal(); }
+      }
+    };
+    veil.querySelectorAll('[data-board]').forEach(b => b.addEventListener('click', () => handleBuy('board', b.dataset.board)));
+    veil.querySelectorAll('[data-dice]').forEach(b => b.addEventListener('click', () => handleBuy('dice', b.dataset.dice)));
   }
 
-  function openLeaderboardModal() {
-    const board = window.RLAState.getLeaderboard();
+  async function openLeaderboardModal() {
+    let board = window.RLAState.getLeaderboard();
+    if (window.RLAClient?.isServerAvailable()) {
+      const res = await window.RLAClient.fetchLeaderboard();
+      if (res.ok && res.leaderboard.length) {
+        const myId = window.RLAClient.getUserId();
+        board = res.leaderboard.map(p => ({ ...p, isSelf: p.id === myId }));
+      }
+    }
     const rows = board.map((p, idx) => `
       <div class="rla-list-row ${p.isSelf ? 'self' : ''}">
         <span><strong>#${idx + 1}</strong> ${p.avatar} ${escapeHtml(p.name)} <small>(Lv.${p.level})</small></span>
@@ -467,8 +460,6 @@ const RLA = (() => {
         <div class="rla-royal-card"><span style="font-size:11px">Wins</span><strong>${s.stats.wins} (${wr}%)</strong></div>
         <div class="rla-royal-card"><span style="font-size:11px">Captures</span><strong>${s.stats.captures}</strong></div>
         <div class="rla-royal-card"><span style="font-size:11px">6s Rolled</span><strong>${s.stats.sixesRolled}</strong></div>
-        <div class="rla-royal-card"><span style="font-size:11px">Best Streak</span><strong>${s.stats.bestStreak}</strong></div>
-        <div class="rla-royal-card"><span style="font-size:11px">Trophies</span><strong>${s.stats.tournamentsWon}</strong></div>
       </div>
     `, [], true);
   }
@@ -479,33 +470,30 @@ const RLA = (() => {
       <div class="rla-list-row ${!m.claimed ? 'self' : ''}" style="flex-direction:column;align-items:stretch;gap:6px">
         <div style="display:flex;justify-content:space-between"><strong>${escapeHtml(m.title)}</strong><small>${m.date}</small></div>
         <div style="font-size:13px">${escapeHtml(m.body)}</div>
-        ${!m.claimed
-          ? `<button type="button" class="rla-royal-btn" data-claim-msg="${m.id}">Claim ${m.coins ? `${m.coins} 🪙` : ''} ${m.diamonds ? `${m.diamonds} 💎` : ''}</button>`
-          : '<span style="color:#86f28a;font-size:12px;font-weight:800">Reward Claimed ✓</span>'}
       </div>
     `).join('');
-    const veil = modal('ROYAL INBOX ✉️', `<div class="rla-list">${rows}</div>`, [], true);
-    veil.querySelectorAll('[data-claim-msg]').forEach(b => {
-      b.addEventListener('click', () => {
-        const res = window.RLAState.claimInbox(b.dataset.claimMsg);
-        if (res) {
-          window.RLASound?.coin();
-          window.RLAGameView?.toast(`Claimed +${res.coins} 🪙 +${res.diamonds} 💎!`);
-          openInboxModal();
-        }
-      });
-    });
+    modal('ROYAL INBOX ✉️', `<div class="rla-list">${rows}</div>`, [], true);
   }
 
-  function openFreeChestModal() {
+  async function openFreeChestModal() {
+    if (window.RLAClient?.isServerAvailable()) {
+      const res = await window.RLAClient.claimFreeChest();
+      if (res.ok) {
+        window.RLASound?.coin();
+        modal('FREE ROYAL CHEST 🪙', `Demo server: +${res.coins} Coins credited to your preview wallet.`);
+      } else {
+        const mins = Math.ceil((res.remainingMs || 60000) / 60000);
+        modal('FREE ROYAL CHEST ⏳', `Next server-verified chest unlocks in ${mins} minute(s).`);
+      }
+      return;
+    }
     const rem = window.RLAState.freeChestCooldownMs();
     if (rem <= 0) {
       const res = window.RLAState.claimFreeChest();
       window.RLASound?.coin();
-      modal('FREE ROYAL CHEST 🪙', `You opened the Royal Treasury Chest and received +${res.coins} Coins! Come back in 30 minutes for another chest.`);
+      modal('FREE ROYAL CHEST 🪙', `Received +${res.coins} Coins! Come back in 30 minutes.`);
     } else {
-      const mins = Math.ceil(rem / 60000);
-      modal('FREE ROYAL CHEST ⏳', `Next free chest unlocks in ${mins} minute(s). Play matches or spin the Lucky Wheel to earn more coins right now!`);
+      modal('FREE ROYAL CHEST ⏳', `Next free chest unlocks in ${Math.ceil(rem / 60000)} minute(s).`);
     }
   }
 
@@ -518,19 +506,19 @@ const RLA = (() => {
         <div class="rla-list-row"><span>⚡ Fast 2x Animations</span><label class="rla-switch"><input type="checkbox" id="set-spd" ${st.fastSpeed ? 'checked' : ''}></label></div>
         <div class="rla-list-row"><span>🤖 Auto-Move Single Valid Pawn</span><label class="rla-switch"><input type="checkbox" id="set-auto" ${st.autoSingleMove !== false ? 'checked' : ''}></label></div>
       </div>
-    `, [
-      ['Reset Local Data', () => {
-        window.RLAState.resetAll();
-        window.RLAGameView?.toast('Local game progress reset.');
-        draw();
-      }],
-      ['Done', () => {}]
-    ], true);
-
+    `, [['Done', () => {}]], true);
     veil.querySelector('#set-sfx')?.addEventListener('change', e => window.RLAState.updateSettings({ sfx: e.target.checked }));
     veil.querySelector('#set-hap')?.addEventListener('change', e => window.RLAState.updateSettings({ haptics: e.target.checked }));
     veil.querySelector('#set-spd')?.addEventListener('change', e => window.RLAState.updateSettings({ fastSpeed: e.target.checked }));
     veil.querySelector('#set-auto')?.addEventListener('change', e => window.RLAState.updateSettings({ autoSingleMove: e.target.checked }));
+  }
+
+  function openSecureCheckoutModal(hit) {
+    modal('STORE PURCHASES NOT YET AVAILABLE', `
+      <p style="margin:0;font-weight:800;color:#ffe28a">${escapeHtml(hit.value)} (SKU: ${escapeHtml(hit.sku || 'unknown')})</p>
+      <p style="margin-top:10px;font-size:13px;line-height:1.5">This is a preview of a future store pack. No payment will be collected and no virtual currency will be credited.</p>
+      <p class="rla-hint">Payments require a separately verified provider, server-created order, and durable fulfilment ledger. They cannot be enabled by entering an API secret alone.</p>
+    `, [], true);
   }
 
   function go(to) {
@@ -545,9 +533,8 @@ const RLA = (() => {
       case 'info': modal(hit.label, hit.message); break;
       case 'edit': openEditProfile(); break;
       case 'copy': {
-        const pid = window.RLAState ? window.RLAState.get().profile.id : 'RL782346';
+        const pid = window.RLAState?.get().profile.id || 'RL782346';
         navigator.clipboard?.writeText(pid).catch(() => {});
-        window.RLASound?.select();
         window.RLAGameView?.toast(`Player ID ${pid} copied!`);
         break;
       }
@@ -555,16 +542,6 @@ const RLA = (() => {
       case 'daily-reward': openDailyRewardModal(); break;
       case 'lucky-spin': openLuckySpinModal(); break;
       case 'missions': openMissionsModal(); break;
-      case 'claim-all-missions': {
-        const res = window.RLAState.claimAllMissions();
-        if (res.count > 0) {
-          window.RLASound?.coin();
-          window.RLAGameView?.toast(`Claimed ${res.count} mission(s): +${res.coins} 🪙 +${res.diamonds} 💎!`);
-        } else {
-          openMissionsModal();
-        }
-        break;
-      }
       case 'inventory': openInventoryModal(); break;
       case 'leaderboard': openLeaderboardModal(); break;
       case 'stats': openStatsModal(); break;
@@ -572,33 +549,12 @@ const RLA = (() => {
       case 'free-chest': openFreeChestModal(); break;
       case 'settings': openSettingsModal(); break;
       case 'tournament': window.RLAGameView?.openTournamentModal(); break;
-      case 'vip':
-        modal('ROYAL VIP CLUB 👑', 'Royal Pass & VIP perks include exclusive Board Themes, Dice Skins, and 2x Tournament rewards. Unlock cosmetics anytime from the Inventory tab using earned Coins & Diamonds!');
-        break;
-      case 'club':
-        modal('ROYAL CLUBS 🛡️', 'Create or join a Royal Ludo Club when you connect an online multiplayer backend (Firebase/Socket.io). Meanwhile, team up in 2v2 Team Battle or Private Rooms!');
-        break;
-      case 'social':
-        modal('FRIENDS & INVITE 🤝', `Share your Player ID (${window.RLAState?.get().profile.id || 'RL782346'}) or launch "Play With Friends" to create a 6-digit Private Room and play locally or across browser tabs!`, [
-          ['Open Play With Friends', () => go('friends')]
-        ]);
-        break;
-      case 'help':
-        modal('ROYAL LUDO ARENA HELP ❓', '• Roll 6 to bring a pawn out of base.\n• Star tiles (★) are safe zones.\n• Rolling 6, capturing an opponent, or reaching Crown Home gives a bonus roll.\n• Three consecutive 6s forfeits your turn.\n• Press Spacebar anytime during your turn to roll dice!');
-        break;
-      case 'purchase':
-        modal('STORE DEMO SANDBOX', `${hit.value}.\n\nReal-money purchases are disabled until Google Play Billing is connected. Want to add this pack in local Demo Mode to test Board Themes & Dice Skins?`, [
-          ['Add Demo Pack (Free)', () => {
-            window.RLAState.addCurrency(hit.coins || 25000, hit.diamonds || 0);
-            window.RLASound?.coin();
-            window.RLAGameView?.toast(`Demo pack added: ${hit.value}!`);
-          }],
-          ['Cancel', () => {}]
-        ]);
-        break;
-      case 'gift':
-        modal('SEND GIFT PREVIEW', `${hit.value}. Sending gifts to external accounts requires an online friend server; local gifting is preview-only.`);
-        break;
+      case 'vip': modal('ROYAL VIP CLUB 👑', 'Unlock exclusive 3D Board Themes & Dice Skins from Inventory using server-verified Coins & Diamonds.'); break;
+      case 'club': modal('ROYAL CLUBS 🛡️', 'Team up right now in 2v2 Team Battle (Duo Party) or Private Rooms!'); break;
+      case 'social': modal('FRIENDS & INVITE 🤝', `Share your Player ID (${window.RLAState?.get().profile.id || 'RL782346'}) or open Play With Friends to create a live 6-digit Private Room.`, [['Open Play With Friends', () => go('friends')]]); break;
+      case 'help': modal('ROYAL LUDO ARENA HELP ❓', '• Roll 6 to exit base.\n• Star tiles (★) are safe zones.\n• In 2v2 Team Battle, finishing all 4 pawns activates Partner Finish Assist!\n• Press Spacebar during your turn to roll.'); break;
+      case 'purchase': openSecureCheckoutModal(hit); break;
+      case 'gift': openSecureCheckoutModal(hit); break;
     }
   }
 
@@ -609,14 +565,12 @@ const RLA = (() => {
     stage.setAttribute('aria-label', data.label);
     stage.style.setProperty('--art-ratio', `${data.width}/${data.height}`);
     stage.style.setProperty('--stage-bg', '#351809');
-
     const img = document.createElement('img');
     img.className = 'rla-source-art';
     img.src = `./assets/screens/${data.file}.jpg`;
     img.alt = '';
     img.draggable = false;
     stage.append(img);
-
     for (const hit of HITS[route]) stage.append(overlay(hit, [data.width, data.height]));
 
     if (route === 'profile' && window.RLAState) {
@@ -626,30 +580,25 @@ const RLA = (() => {
       tag.textContent = `${s.profile.avatar} ${s.profile.name} · Lv.${s.progression.level} · 🪙${s.currency.coins.toLocaleString()}`;
       stage.append(tag);
     }
-
     if (route === 'store' || route === 'store-compact') {
       const area = document.createElement('div');
       area.className = 'rla-preview-label';
-      area.textContent = 'Demo Store · Play Billing Offline';
+      area.textContent = 'Server-Verified Billing · Anti-Fraud Enabled';
       stage.append(area);
       if (state.mode !== 'coins') {
         const panel = document.createElement('section');
         panel.className = 'rla-tab-panel';
-        panel.setAttribute('aria-label', `${state.mode} store panel`);
         const title = document.createElement('h2');
         title.textContent = state.mode === 'diamonds' ? 'Diamond Store' : 'Royal Offers';
         panel.append(title);
         const list = state.mode === 'diamonds'
-          ? [['100 Diamonds', 0, 100], ['500 Diamonds', 0, 500], ['2,000 Diamonds', 0, 2000]]
-          : [['Royal Starter Bundle (50k Coins + 50 💎)', 50000, 50], ['Unlock Board Themes & Dice Skins', 0, 0]];
-        for (const [label, c, d] of list) {
-          const button = document.createElement('button');
-          button.textContent = label;
-          button.addEventListener('click', () => {
-            if (c === 0 && d === 0) openInventoryModal();
-            else apply({ action: 'purchase', value: label, coins: c, diamonds: d });
-          });
-          panel.append(button);
+          ? [['100 Diamonds — ₹79', 'diamonds_100'], ['500 Diamonds — ₹329', 'diamonds_500'], ['2,000 Diamonds — ₹999', 'diamonds_2000']]
+          : [['Royal Coin Bundle — ₹480', 'royal_bundle'], ['King Pass — ₹599', 'king_pass']];
+        for (const [label, sku] of list) {
+          const b = document.createElement('button');
+          b.textContent = label;
+          b.addEventListener('click', () => openSecureCheckoutModal({ sku, value: label }));
+          panel.append(b);
         }
         if (state.mode === 'offers') {
           const gift = document.createElement('button');

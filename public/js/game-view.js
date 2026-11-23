@@ -1,32 +1,21 @@
 /**
- * Royal Ludo Arena — Interactive 15x15 Luxury Game Arena, Animations,
- * Matchmaking Lobby, Private Room (with BroadcastChannel live multi-tab sync),
- * Custom Player Setup, and 4-Player Royal Tournament Controller.
+ * Royal Ludo Arena v2.0.0 — 3D Studio Board Renderer, Glossy 3D Pawns,
+ * Live Server-Authoritative Private Rooms, 2v2 Team Battle (Solo & Duo Party),
+ * Partner Finish Assist UI, Team Tactical Signals & Tournament Controller.
  */
 (function (global) {
   'use strict';
 
-  // User-entered names and persisted match data are untrusted. Keep text out of HTML parsing.
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-  }
-
   const PIP_MAP = {
-    1: [4],
-    2: [0, 8],
-    3: [0, 4, 8],
-    4: [0, 2, 6, 8],
-    5: [0, 2, 4, 6, 8],
-    6: [0, 2, 3, 5, 6, 8]
+    1: [4], 2: [0, 8], 3: [0, 4, 8],
+    4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]
   };
 
   const COLOR_THEME = {
-    red:    { main: '#e52d2d', light: '#ff6b6b', dark: '#8d1111', tint: '#f7c5c5', label: 'Red' },
-    green:  { main: '#1ea849', light: '#57df7e', dark: '#0e5b26', tint: '#c5f2d2', label: 'Green' },
-    yellow: { main: '#f4b71a', light: '#ffe073', dark: '#946706', tint: '#fdf0bf', label: 'Yellow' },
-    blue:   { main: '#1e78ff', light: '#6bb0ff', dark: '#0c4194', tint: '#c4dfff', label: 'Blue' }
+    red:    { light: '#ff6b6b', label: 'Red' },
+    green:  { light: '#57df7e', label: 'Green' },
+    yellow: { light: '#ffe073', label: 'Yellow' },
+    blue:   { light: '#6bb0ff', label: 'Blue' }
   };
 
   const MODE_LABELS = {
@@ -34,14 +23,19 @@
     quick: 'Quick (2 Home)',
     rush: 'Rush Blitz',
     oneKillWin: 'One Kill Win',
-    teamUp: 'Team 2v2',
+    teamUp: 'Team Battle 2v2',
     popular: 'Popular (+Reroll)',
     mask: 'Mask Mode'
   };
 
-  const EMOTES = ['😂', '😎', '🔥', '👏', '😱', '🙏'];
-  const BOT_NAMES = ['Vikram_King', 'AanyaRoyal', 'RohanBlitz', 'PriyaDice', 'Kabir_99', 'MeeraStar', 'ArjunPro', 'DevQueen'];
-  const BOT_AVATARS = ['🦁', '👑', '🐉', '💎', '🦅', '🦊', '🐯', '🤖'];
+  const EMOTES = ['😂', '😎', '🔥', '👏', '😱'];
+  const TEAM_SIGNALS = ['🛡️ Cover!', '⚔️ Attack!', '👑 Home!'];
+  const BOT_NAMES = ['Vikram_King', 'AanyaRoyal', 'RohanBlitz', 'PriyaDice', 'Kabir_99', 'MeeraStar'];
+  const BOT_AVATARS = ['🦁', '👑', '🐉', '💎', '🦅', '🦊'];
+  // All account, lobby and saved-match names are untrusted, even when delivered by our server.
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  }
 
   let engine = null;
   let containerEl = null;
@@ -51,10 +45,11 @@
   let aiTimeoutId = null;
   let turnRemaining = 18;
   let fastMode = false;
-  let boardChannel = null;
+  let isServerMatch = false;
   let tournamentState = null;
+  let activeLobbyModal = null;
 
-  function toast(msg, ms = 2200) {
+  function toast(msg, ms = 2400) {
     document.querySelectorAll('.rla-toast').forEach(e => e.remove());
     const el = document.createElement('div');
     el.className = 'rla-toast';
@@ -123,98 +118,10 @@
     if (aiTimeoutId) { clearTimeout(aiTimeoutId); aiTimeoutId = null; }
   }
 
-  function closeChannel() {
-    if (boardChannel) {
-      try { boardChannel.close(); } catch {}
-      boardChannel = null;
-    }
-  }
-
-  function buildBoardSVG() {
-    const { MAIN_TRACK, SAFE_TRACK_INDICES, START_INDEX, HOME_STRETCH, YARD_SLOTS } = global.LudoCore;
-    const parts = [];
-    parts.push(`<svg class="rla-board-svg" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">`);
-    // Flat antique-gold highlights; no gradient or neon effects.
-
-
-    // Parchment board base
-    parts.push(`<rect x="0" y="0" width="150" height="150" fill="#fbf2dc"/>`);
-
-    // Draw 15x15 track cells
-    const startCells = {
-      [START_INDEX.red]: COLOR_THEME.red.main,
-      [START_INDEX.green]: COLOR_THEME.green.main,
-      [START_INDEX.yellow]: COLOR_THEME.yellow.main,
-      [START_INDEX.blue]: COLOR_THEME.blue.main
-    };
-
-    MAIN_TRACK.forEach(([r, c], idx) => {
-      const fill = startCells[idx] || '#fff8e8';
-      parts.push(`<rect x="${c * 10}" y="${r * 10}" width="10" height="10" fill="${fill}" stroke="#bfa272" stroke-width="0.45"/>`);
-      if (SAFE_TRACK_INDICES.has(idx)) {
-        const starFill = startCells[idx] ? '#fff8d6' : '#d6971c';
-        parts.push(`<text x="${c * 10 + 5}" y="${r * 10 + 7.4}" text-anchor="middle" font-size="6.8" fill="${starFill}">★</text>`);
-      }
-    });
-
-    // Home stretch colored lanes (first 5 cells)
-    Object.entries(HOME_STRETCH).forEach(([color, cells]) => {
-      const fill = COLOR_THEME[color].main;
-      for (let i = 0; i < 5; i++) {
-        const [r, c] = cells[i];
-        parts.push(`<rect x="${c * 10}" y="${r * 10}" width="10" height="10" fill="${fill}" stroke="#fff4d6" stroke-width="0.45"/>`);
-      }
-    });
-
-    // 4 Corner Yards
-    const yards = [
-      { color: 'red', x: 0, y: 0 },
-      { color: 'green', x: 90, y: 0 },
-      { color: 'yellow', x: 90, y: 90 },
-      { color: 'blue', x: 0, y: 90 }
-    ];
-    yards.forEach(({ color, x, y }) => {
-      const t = COLOR_THEME[color];
-      parts.push(`<rect x="${x}" y="${y}" width="60" height="60" fill="${t.main}" stroke="#6b3e14" stroke-width="0.8"/>`);
-      parts.push(`<rect x="${x + 7.5}" y="${y + 7.5}" width="45" height="45" rx="7" fill="#fff7e2" stroke="#d9a438" stroke-width="1.4"/>`);
-      YARD_SLOTS[color].forEach(([r, c]) => {
-        const cx = (c + 0.5) * 10;
-        const cy = (r + 0.5) * 10;
-        parts.push(`<circle cx="${cx}" cy="${cy}" r="6.6" fill="${t.tint}" stroke="${t.main}" stroke-width="1.3"/>`);
-        parts.push(`<circle cx="${cx}" cy="${cy}" r="4.2" fill="none" stroke="${t.dark}" stroke-opacity="0.25" stroke-width="0.6"/>`);
-      });
-    });
-
-    // Center Victory Crown Home (rows 6..8, cols 6..8 -> 60..90)
-    parts.push(`<polygon points="60,60 75,75 60,90" fill="${COLOR_THEME.red.main}" stroke="#fff4d6" stroke-width="0.6"/>`);
-    parts.push(`<polygon points="60,60 90,60 75,75" fill="${COLOR_THEME.green.main}" stroke="#fff4d6" stroke-width="0.6"/>`);
-    parts.push(`<polygon points="90,60 90,90 75,75" fill="${COLOR_THEME.yellow.main}" stroke="#fff4d6" stroke-width="0.6"/>`);
-    parts.push(`<polygon points="60,90 90,90 75,75" fill="${COLOR_THEME.blue.main}" stroke="#fff4d6" stroke-width="0.6"/>`);
-    parts.push(`<circle cx="75" cy="75" r="7.5" fill="#d9a438" stroke="#5b2c0a" stroke-width="1"/>`);
-    parts.push(`<text x="75" y="78" text-anchor="middle" font-size="8.5" fill="#4f1c05">👑</text>`);
-
-    parts.push(`</svg>`);
-    return parts.join('');
-  }
-
-  function buildPawnSVG(color) {
-    const t = COLOR_THEME[color];
-    return `<svg class="rla-pawn-svg" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="20" cy="43" rx="13" ry="4.5" fill="rgba(0,0,0,0.38)"/>
-      <path d="M9 40 C9 30 14 23 20 18 C26 23 31 30 31 40 Z" fill="${t.main}" stroke="${t.dark}" stroke-width="2"/>
-      <path d="M13 38 C13 31 16 25 20 21" stroke="${t.light}" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
-      <circle cx="20" cy="14" r="9.5" fill="${t.main}" stroke="${t.dark}" stroke-width="2"/>
-      <circle cx="16.5" cy="11" r="3" fill="#ffffff" opacity="0.72"/>
-      <ellipse cx="20" cy="40" rx="11.5" ry="3.2" fill="${t.dark}" opacity="0.45"/>
-    </svg>`;
-  }
-
   function buildDiceFaceHTML(value, rolling = false) {
     const on = new Set(PIP_MAP[value || 6] || PIP_MAP[6]);
     let pips = '';
-    for (let i = 0; i < 9; i++) {
-      pips += `<span class="rla-pip ${on.has(i) ? 'on' : ''}"></span>`;
-    }
+    for (let i = 0; i < 9; i++) pips += `<span class="rla-pip ${on.has(i) ? 'on' : ''}"></span>`;
     return `<div class="rla-dice-face ${rolling ? 'rolling' : ''}">${pips}</div>`;
   }
 
@@ -222,6 +129,15 @@
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  function canLocalControlCurrentTurn() {
+    if (!engine || engine.phase === 'finished') return false;
+    const cur = engine.getCurrentPlayer();
+    if (isServerMatch) {
+      return cur.userId === global.RLAClient?.getUserId();
+    }
+    return Boolean(cur.isLocalHuman);
   }
 
   function renderArena() {
@@ -233,19 +149,22 @@
     const byColor = {};
     engine.players.forEach(p => { byColor[p.color] = p; });
 
+    const current = engine.getCurrentPlayer();
+    const controlled = engine.getControlledPlayer(engine.currentTurn);
+    const partnerAssist = controlled && controlled.id !== current.id;
+    const localCanAct = canLocalControlCurrentTurn();
+
     const renderSeat = (color, rightSide) => {
       const p = byColor[color];
-      if (!p) {
-        return `<div class="rla-seat-card empty color-${color} ${rightSide ? 'seat-right' : ''}">Open Seat</div>`;
-      }
-      const isActive = engine.phase !== 'finished' && engine.getCurrentPlayer().id === p.id;
+      if (!p) return `<div class="rla-seat-card empty color-${color} ${rightSide ? 'seat-right' : ''}">Open Seat</div>`;
+      const isActive = engine.phase !== 'finished' && current.id === p.id;
       const done = engine.getFinishedCount(p);
       const needed = engine.tokensNeededToWin();
       const pips = Array.from({ length: needed }, (_, i) => `<span class="rla-home-pip ${i < done ? 'done' : ''}"></span>`).join('');
-      const canClickDice = isActive && engine.phase === 'roll' && p.isLocalHuman && !animating;
+      const canClickDice = isActive && engine.phase === 'roll' && localCanAct && !animating;
       const diceVal = isActive && engine.diceValue ? engine.diceValue : 6;
-      const teamBadge = engine.mode === 'teamUp' ? ` · T${p.teamId + 1}` : '';
-      const scoreBadge = engine.mode === 'rush' ? ` · ${p.score}pt` : '';
+      const isMe = isServerMatch ? p.userId === global.RLAClient?.getUserId() : p.isLocalHuman;
+      const tag = engine.mode === 'teamUp' ? `T${p.teamId + 1}` : (isMe ? 'YOU' : p.aiLevel.toUpperCase());
 
       return `
         <div class="rla-seat-card color-${color} ${rightSide ? 'seat-right' : ''} ${isActive ? 'active' : ''}" data-seat-color="${color}">
@@ -254,13 +173,13 @@
               <circle class="bg" cx="25" cy="25" r="22"></circle>
               <circle class="fg" data-timer-ring="${color}" cx="25" cy="25" r="22" stroke-dasharray="138.2" stroke-dashoffset="${isActive ? 0 : 138.2}"></circle>
             </svg>
-            <div class="rla-avatar-circle">${p.avatar}</div>
+            <div class="rla-avatar-circle">${escapeHtml(p.avatar)}</div>
           </div>
           <div class="rla-seat-meta">
             <div class="rla-seat-name">${escapeHtml(p.displayName)}${p.finishedRank ? ` (#${p.finishedRank})` : ''}</div>
             <div class="rla-seat-sub">
               <span class="rla-home-pips">${pips}</span>
-              <span>${p.isHuman ? 'YOU' : p.aiLevel.toUpperCase()}${teamBadge}${scoreBadge}</span>
+              <span>${tag}${engine.mode === 'rush' ? ` · ${p.score}pt` : ''}</span>
             </div>
           </div>
           <div class="rla-dice-dock ${diceSkin}">
@@ -272,18 +191,39 @@
       `;
     };
 
-    const current = engine.getCurrentPlayer();
     const sfxOn = state.settings.sfx !== false;
     let promptText = '';
     if (engine.phase === 'finished') {
       promptText = 'Match Complete!';
     } else if (engine.phase === 'roll') {
-      promptText = current.isLocalHuman ? `${current.displayName}: Tap Dice or press Space!` : `${current.displayName} is rolling...`;
+      promptText = localCanAct
+        ? (partnerAssist ? `🤝 Partner Assist! Roll for ${controlled.displayName}` : `${current.displayName}: Tap Dice or Space!`)
+        : `${current.displayName} is rolling...`;
     } else {
-      promptText = current.isLocalHuman ? `${current.displayName}: Rolled ${engine.diceValue} — Choose a pawn!` : `${current.displayName} rolled ${engine.diceValue}...`;
+      promptText = localCanAct
+        ? (partnerAssist ? `🤝 Rolled ${engine.diceValue} — Move ${controlled.displayName}'s pawn!` : `Rolled ${engine.diceValue} — Choose a pawn!`)
+        : `${current.displayName} rolled ${engine.diceValue}...`;
     }
 
-    const showReroll = engine.mode === 'popular' && engine.phase === 'move' && current.isLocalHuman && current.rerollsLeft > 0;
+    const showReroll = engine.mode === 'popular' && engine.phase === 'move' && localCanAct && current.rerollsLeft > 0;
+    let teamBarHtml = '';
+    if (engine.mode === 'teamUp') {
+      const t0 = engine.getTeamProgress(0);
+      const t1 = engine.getTeamProgress(1);
+      teamBarHtml = `
+        <div class="rla-team-bar">
+          <div class="rla-team-side">
+            <span style="color:#85d8ff">TEAM 1 (Blue+Green) · ${t0.finished}/${t0.needed}</span>
+            <div class="rla-team-track"><div class="rla-team-fill-t1" style="width:${t0.pct}%"></div></div>
+          </div>
+          <span style="color:#ffd86b">${partnerAssist ? '🤝 ASSIST' : '2v2'}</span>
+          <div class="rla-team-side right">
+            <span style="color:#ffb385">TEAM 2 (Red+Yellow) · ${t1.finished}/${t1.needed}</span>
+            <div class="rla-team-track"><div class="rla-team-fill-t2" style="width:${t1.pct}%"></div></div>
+          </div>
+        </div>
+      `;
+    }
 
     containerEl.innerHTML = `
       <div class="rla-arena-shell ${boardTheme}">
@@ -291,10 +231,10 @@
           <header class="rla-top-bar">
             <div class="rla-top-left">
               <button type="button" class="rla-icon-btn" id="rla-btn-exit" title="Leave Match" aria-label="Leave Match">←</button>
-              <span class="rla-mode-pill">👑 ${MODE_LABELS[engine.mode] || engine.mode}</span>
+              <span class="rla-mode-pill">${isServerMatch ? '🟢' : '👑'} ${MODE_LABELS[engine.mode] || engine.mode}</span>
               ${engine.mode === 'rush' ? `<span class="rla-timer-pill" id="rla-rush-clock">⏱ ${formatTime(engine.rushSecondsLeft)}</span>` : ''}
               ${engine.prizeCoins > 0 ? `<span class="rla-timer-pill">🪙 ${engine.prizeCoins.toLocaleString()}</span>` : ''}
-              ${engine.roomCode ? `<span class="rla-timer-pill">Room ${engine.roomCode}</span>` : ''}
+              ${engine.roomCode ? `<span class="rla-timer-pill">#${engine.roomCode}</span>` : ''}
             </div>
             <div class="rla-top-right">
               <button type="button" class="rla-icon-btn ${fastMode ? 'active' : ''}" id="rla-btn-speed" title="Toggle 2x Speed">${fastMode ? '2x' : '1x'}</button>
@@ -303,14 +243,16 @@
             </div>
           </header>
 
+          ${teamBarHtml}
+
           <div class="rla-seat-row">
             ${renderSeat('red', false)}
             ${renderSeat('green', true)}
           </div>
 
           <div class="rla-board-frame">
+            <img class="rla-board-art-img" src="./assets/game/board-royal-walnut.webp" alt="Royal Ludo 3D Board" draggable="false">
             <div class="rla-board-surface">
-              ${buildBoardSVG()}
               <div class="rla-tokens-layer" id="rla-tokens-layer"></div>
             </div>
           </div>
@@ -324,43 +266,44 @@
             <div class="rla-turn-prompt" id="rla-turn-prompt">${escapeHtml(promptText)}</div>
             ${showReroll ? `<button type="button" class="rla-reroll-btn" id="rla-btn-reroll">🎲 Reroll (${current.rerollsLeft})</button>` : ''}
             <div class="rla-emote-strip">
-              ${EMOTES.map(e => `<button type="button" class="rla-emote-btn" data-emote="${e}" aria-label="Send emote ${e}">${e}</button>`).join('')}
+              ${(engine.mode === 'teamUp' ? TEAM_SIGNALS : EMOTES).map(e =>
+                `<button type="button" class="rla-emote-btn" data-emote="${e}" data-team-only="${engine.mode === 'teamUp' ? '1' : '0'}">${e}</button>`
+              ).join('')}
             </div>
           </footer>
         </div>
       </div>
     `;
 
-    // Wire events
     containerEl.querySelector('#rla-btn-exit')?.addEventListener('click', confirmExit);
     containerEl.querySelector('#rla-btn-speed')?.addEventListener('click', () => {
       fastMode = !fastMode;
       global.RLAState.updateSettings({ fastSpeed: fastMode });
       global.RLASound?.click();
       renderArena();
-      renderTokens();
     });
     containerEl.querySelector('#rla-btn-sfx')?.addEventListener('click', () => {
       const next = !(global.RLAState.getSettings().sfx !== false);
       global.RLAState.updateSettings({ sfx: next });
       if (next) global.RLASound?.click();
       renderArena();
-      renderTokens();
     });
     containerEl.querySelector('#rla-btn-rules')?.addEventListener('click', showRulesModal);
     containerEl.querySelector('#rla-btn-reroll')?.addEventListener('click', handlePowerReroll);
 
     containerEl.querySelectorAll('[data-dice-player]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!animating) triggerRoll();
-      });
+      btn.addEventListener('click', () => { if (!animating) requestRoll(); });
     });
 
     containerEl.querySelectorAll('[data-emote]').forEach(btn => {
       btn.addEventListener('click', () => {
-        const human = engine.players.find(p => p.isLocalHuman) || engine.getCurrentPlayer();
-        showEmoteOnSeat(human.color, btn.dataset.emote);
-        broadcastAction({ type: 'emote', color: human.color, emote: btn.dataset.emote });
+        const teamOnly = btn.dataset.teamOnly === '1';
+        if (isServerMatch) {
+          global.RLAClient?.sendEmote(btn.dataset.emote, teamOnly);
+        } else {
+          const human = engine.players.find(p => p.isLocalHuman) || engine.getCurrentPlayer();
+          showEmoteOnSeat(human.color, teamOnly ? `🤝 ${btn.dataset.emote}` : btn.dataset.emote);
+        }
       });
     });
 
@@ -373,19 +316,16 @@
     if (!layer || !engine) return;
     const { getTokenCoords, MAX_PROGRESS } = global.LudoCore;
 
-    // Group tokens by cell coordinate to apply clean stack offsets
     const cellGroups = new Map();
     const tokenList = [];
 
     engine.players.forEach(p => {
       p.tokens.forEach(tok => {
-        if (tok.progress === MAX_PROGRESS) return; // Finished tokens sit in crown
-        let coords;
-        if (overridePos && overridePos.playerId === p.id && overridePos.tokenId === tok.id) {
-          coords = getTokenCoords(p.color, tok.id, overridePos.progress);
-        } else {
-          coords = getTokenCoords(p.color, tok.id, tok.progress);
-        }
+        if (tok.progress === MAX_PROGRESS) return;
+        const prog = (overridePos && overridePos.playerId === p.id && overridePos.tokenId === tok.id)
+          ? overridePos.progress
+          : tok.progress;
+        const coords = getTokenCoords(p.color, tok.id, prog);
         const key = `${coords[0].toFixed(1)},${coords[1].toFixed(1)}`;
         if (!cellGroups.has(key)) cellGroups.set(key, []);
         const entry = { player: p, token: tok, coords, key };
@@ -394,10 +334,9 @@
       });
     });
 
-    const current = engine.getCurrentPlayer();
-    const stackOffsets = [
-      [0, 0], [-1.3, -1.0], [1.3, -1.0], [-1.3, 1.0], [1.3, 1.0], [0, -1.5]
-    ];
+    const controlled = engine.getControlledPlayer(engine.currentTurn);
+    const localCanAct = canLocalControlCurrentTurn();
+    const stackOffsets = [[0, 0], [-1.4, -1.0], [1.4, -1.0], [-1.4, 1.0], [1.4, 1.0], [0, -1.6]];
 
     layer.innerHTML = '';
     tokenList.forEach(({ player, token, coords, key }) => {
@@ -405,7 +344,7 @@
       const idxInGroup = group.indexOf(group.find(g => g.player.id === player.id && g.token.id === token.id));
       const [ox, oy] = group.length > 1 ? (stackOffsets[idxInGroup % stackOffsets.length] || [0, 0]) : [0, 0];
 
-      const isMovable = !animating && engine.phase === 'move' && current.id === player.id && current.isLocalHuman && engine.validTokenIds.includes(token.id);
+      const isMovable = !animating && engine.phase === 'move' && controlled && controlled.id === player.id && localCanAct && engine.validTokenIds.includes(token.id);
       const isHopping = overridePos && overridePos.playerId === player.id && overridePos.tokenId === token.id;
 
       const btn = document.createElement('button');
@@ -414,15 +353,13 @@
       btn.style.left = `${((coords[1] + 0.5) / 15) * 100 + ox}%`;
       btn.style.top = `${((coords[0] + 0.5) / 15) * 100 + oy}%`;
       if (group.length > 1 && !isMovable) {
-        btn.style.width = '5.4%';
-        btn.style.height = '5.4%';
+        btn.style.width = '6.2%';
+        btn.style.height = '6.2%';
       }
       btn.setAttribute('aria-label', `${player.displayName} ${player.color} pawn ${token.id + 1}`);
-      btn.innerHTML = `${isMovable ? '<span class="rla-pawn-ring"></span>' : ''}${buildPawnSVG(player.color)}${group.length > 1 && idxInGroup === group.length - 1 ? `<span class="rla-stack-badge">${group.length}</span>` : ''}`;
+      btn.innerHTML = `${isMovable ? '<span class="rla-pawn-ring"></span>' : ''}<img class="rla-pawn-img" src="./assets/game/pawn-${player.color}.png" alt="" draggable="false">${group.length > 1 && idxInGroup === group.length - 1 ? `<span class="rla-stack-badge">${group.length}</span>` : ''}`;
 
-      if (isMovable) {
-        btn.addEventListener('click', () => triggerMove(token.id));
-      }
+      if (isMovable) btn.addEventListener('click', () => requestMove(token.id));
       layer.append(btn);
     });
   }
@@ -444,14 +381,22 @@
     turnRemaining = engine.turnSeconds;
     updateTimerRing();
 
+    if (isServerMatch) {
+      // Visual countdown only; server enforces authoritative timeout
+      turnTimerId = setInterval(() => {
+        if (!engine || engine.phase === 'finished') return;
+        turnRemaining = Math.max(0, turnRemaining - 1);
+        updateTimerRing();
+      }, 1000);
+      return;
+    }
+
     const current = engine.getCurrentPlayer();
     if (!current.isLocalHuman) {
-      // Schedule AI turn
-      const delay = fastMode ? 320 : 680;
       aiTimeoutId = setTimeout(() => {
         if (!engine || engine.phase === 'finished') return;
-        if (engine.phase === 'roll') triggerRoll();
-      }, delay);
+        if (engine.phase === 'roll') executeLocalRoll();
+      }, fastMode ? 300 : 650);
       return;
     }
 
@@ -462,38 +407,54 @@
       if (turnRemaining <= 0) {
         clearInterval(turnTimerId);
         turnTimerId = null;
-        if (engine.phase === 'roll') {
-          toast(`${current.displayName} timed out — auto-rolling!`);
-          triggerRoll();
-        } else if (engine.phase === 'move' && engine.validTokenIds.length > 0) {
-          toast(`Auto-moving ${current.displayName}'s pawn`);
-          triggerMove(engine.validTokenIds[0]);
-        }
+        if (engine.phase === 'roll') executeLocalRoll();
+        else if (engine.phase === 'move' && engine.validTokenIds.length > 0) executeLocalMove(engine.validTokenIds[0]);
       }
     }, 1000);
   }
 
   function startRushClock() {
     if (rushTimerId) clearInterval(rushTimerId);
-    if (!engine || engine.mode !== 'rush' || engine.phase === 'finished') return;
+    if (!engine || engine.mode !== 'rush' || engine.phase === 'finished' || isServerMatch) return;
     rushTimerId = setInterval(() => {
-      if (!engine || engine.phase === 'finished') {
-        clearInterval(rushTimerId);
-        return;
-      }
+      if (!engine || engine.phase === 'finished') { clearInterval(rushTimerId); return; }
       engine.rushSecondsLeft = Math.max(0, engine.rushSecondsLeft - 1);
       const clock = containerEl?.querySelector('#rla-rush-clock');
       if (clock) clock.textContent = `⏱ ${formatTime(engine.rushSecondsLeft)}`;
       if (engine.rushSecondsLeft <= 0) {
         clearTimers();
         engine.finishRushByTimer();
-        handleGameFinished();
+        handleLocalFinished();
       }
     }, 1000);
   }
 
+  /* ---------- Action Dispatchers (Server vs Local) ---------- */
+  function requestRoll() {
+    if (!engine || engine.phase !== 'roll' || animating) return;
+    if (isServerMatch) {
+      global.RLASound?.diceRoll();
+      const cur = engine.getCurrentPlayer();
+      const diceBtn = containerEl?.querySelector(`[data-dice-player="${cur.id}"]`);
+      if (diceBtn) diceBtn.innerHTML = buildDiceFaceHTML(6, true);
+      global.RLAClient?.rollDice();
+    } else {
+      executeLocalRoll();
+    }
+  }
+
+  function requestMove(tokenId) {
+    if (!engine || engine.phase !== 'move' || animating) return;
+    if (isServerMatch) global.RLAClient?.moveToken(tokenId);
+    else executeLocalMove(tokenId);
+  }
+
   function handlePowerReroll() {
     if (!engine || animating) return;
+    if (isServerMatch) {
+      global.RLAClient?.powerReroll();
+      return;
+    }
     const res = engine.usePowerReroll();
     if (!res.ok) return;
     global.RLASound?.select();
@@ -502,7 +463,8 @@
     startTurnClock();
   }
 
-  function triggerRoll(forcedVal = null, fromRemote = false) {
+  /* ---------- Local Offline Match Execution ---------- */
+  function executeLocalRoll() {
     if (!engine || engine.phase !== 'roll' || animating) return;
     animating = true;
     if (turnTimerId) { clearInterval(turnTimerId); turnTimerId = null; }
@@ -512,12 +474,9 @@
     if (diceBtn) diceBtn.innerHTML = buildDiceFaceHTML(6, true);
     global.RLASound?.diceRoll();
 
-    const rollDuration = fastMode ? 240 : 460;
     setTimeout(() => {
-      const res = engine.rollDice(forcedVal);
+      const res = engine.rollDice();
       if (!res.ok) { animating = false; return; }
-      if (!fromRemote) broadcastAction({ type: 'roll', value: res.value });
-
       if (res.value === 6) global.RLASound?.rollSix();
       global.RLAState.saveActiveMatch(engine.serialize());
 
@@ -529,7 +488,6 @@
         startTurnClock();
         return;
       }
-
       if (res.noMoves) {
         showBoardBanner(`Rolled ${res.value} — No valid moves`);
         animating = false;
@@ -541,70 +499,61 @@
       animating = false;
       renderArena();
 
-      // Auto-move if AI, or if human has only 1 valid move & setting enabled
       const autoSingle = global.RLAState.getSettings().autoSingleMove !== false;
+      const controlled = engine.getControlledPlayer(engine.currentTurn);
       if (!current.isLocalHuman) {
-        const aiPick = global.LudoAI.chooseBestToken(engine, current.id, res.value, res.validTokenIds, current.aiLevel);
-        aiTimeoutId = setTimeout(() => triggerMove(aiPick), fastMode ? 260 : 540);
+        const aiPick = global.LudoAI.chooseBestToken(engine, controlled.id, res.value, res.validTokenIds, current.aiLevel);
+        aiTimeoutId = setTimeout(() => executeLocalMove(aiPick), fastMode ? 240 : 520);
       } else if (autoSingle && res.validTokenIds.length === 1 && !(engine.mode === 'popular' && current.rerollsLeft > 0)) {
-        aiTimeoutId = setTimeout(() => triggerMove(res.validTokenIds[0]), fastMode ? 180 : 360);
+        aiTimeoutId = setTimeout(() => executeLocalMove(res.validTokenIds[0]), fastMode ? 170 : 340);
       } else {
         startTurnClock();
       }
-    }, rollDuration);
+    }, fastMode ? 220 : 440);
   }
 
-  async function triggerMove(tokenId, fromRemote = false) {
-    if (!engine || engine.phase !== 'move' || animating) return;
+  async function animateMoveResult(res) {
     animating = true;
-    if (turnTimerId) { clearInterval(turnTimerId); turnTimerId = null; }
-
-    const player = engine.getCurrentPlayer();
-    const res = engine.moveToken(tokenId);
-    if (!res.ok) { animating = false; return; }
-    if (!fromRemote) broadcastAction({ type: 'move', tokenId });
-
-    // Smooth step-by-step hop animation
-    const hopMs = fastMode ? 70 : 145;
+    const hopMs = fastMode ? 65 : 135;
     for (let i = 0; i < res.pathSteps.length; i++) {
-      const stepProg = res.pathSteps[i];
-      renderTokens({ playerId: res.playerIndex, tokenId: res.tokenId, progress: stepProg });
+      renderTokens({ playerId: res.playerIndex, tokenId: res.tokenId, progress: res.pathSteps[i] });
       if (res.exitedBase && i === 0) global.RLASound?.tokenExit();
       else global.RLASound?.hop(i);
       await new Promise(r => setTimeout(r, hopMs));
     }
 
-    // Post-move FX
-    if (res.captured.length > 0) {
+    if (res.captured && res.captured.length > 0) {
       global.RLASound?.capture();
       const coords = global.LudoCore.getTokenCoords(res.color, res.tokenId, res.toProgress);
       spawnCaptureBurst(coords[0], coords[1]);
       showBoardBanner('💥 CAPTURED! +1 BONUS TURN');
-      if (!player.isLocalHuman && Math.random() < 0.65) {
-        showEmoteOnSeat(player.color, '😎');
-      }
     } else if (res.reachedHome) {
       global.RLASound?.homeReach();
       spawnConfetti(22);
-      showBoardBanner('👑 PAWN REACHED HOME!');
+      showBoardBanner(res.partnerAssist ? '🤝 PARTNER PAWN HOME!' : '👑 PAWN REACHED HOME!');
     } else if (res.landedSafe && !res.exitedBase) {
       global.RLASound?.safeZone();
     } else if (res.bonusTurn && res.diceValue === 6) {
       showBoardBanner('🎲 ROLLED 6 — ROLL AGAIN!');
     }
-
     animating = false;
+  }
+
+  async function executeLocalMove(tokenId) {
+    if (!engine || engine.phase !== 'move' || animating) return;
+    if (turnTimerId) { clearInterval(turnTimerId); turnTimerId = null; }
+    const res = engine.moveToken(tokenId);
+    if (!res.ok) return;
+
+    await animateMoveResult(res);
     global.RLAState.saveActiveMatch(res.gameFinished ? null : engine.serialize());
     renderArena();
 
-    if (res.gameFinished) {
-      handleGameFinished();
-    } else {
-      startTurnClock();
-    }
+    if (res.gameFinished) handleLocalFinished();
+    else startTurnClock();
   }
 
-  function handleGameFinished() {
+  function handleLocalFinished() {
     clearTimers();
     global.RLAState.saveActiveMatch(null);
     global.RLASound?.victory();
@@ -616,9 +565,8 @@
     const humanWon = humanPlayer
       ? (engine.mode === 'teamUp' ? humanPlayer.teamId === engine.winnerTeam : winnerIdx === humanPlayer.id)
       : true;
-
     const prizeWon = humanWon ? (engine.prizeCoins || 250) : 0;
-    const resultInfo = global.RLAState.recordMatchResult({
+    const info = global.RLAState.recordMatchResult({
       won: humanWon,
       captures: humanPlayer ? humanPlayer.captures : 0,
       sixes: humanPlayer ? humanPlayer.sixes : 0,
@@ -626,65 +574,379 @@
       tournament: Boolean(tournamentState && tournamentState.stage === 'final' && humanWon)
     });
 
-    // Tournament progression
     if (tournamentState && tournamentState.stage === 'semi') {
-      if (humanWon) {
-        setTimeout(() => showTournamentAdvanceModal(prizeWon), 700);
-        return;
-      } else {
-        tournamentState = null;
-      }
-    } else if (tournamentState && tournamentState.stage === 'final') {
+      if (humanWon) { setTimeout(() => showTournamentAdvanceModal(), 650); return; }
+      tournamentState = null;
+    } else if (tournamentState) {
       tournamentState = null;
     }
 
+    showVictoryModal(winner, humanWon, prizeWon, info.leveledUp);
+  }
+
+  function showVictoryModal(winner, humanWon, prizeWon, leveledUp) {
     const rows = engine.rankings.map((pid, idx) => {
       const p = engine.players[pid];
       const medal = ['🥇', '🥈', '🥉', '4️⃣'][idx] || `#${idx + 1}`;
-      return `<div class="rla-list-row ${p.isLocalHuman ? 'self' : ''}">
-        <span>${medal} ${p.avatar} <strong>${escapeHtml(p.name)}</strong></span>
+      return `<div class="rla-list-row ${p.isLocalHuman || p.userId === global.RLAClient?.getUserId() ? 'self' : ''}">
+        <span>${medal} ${escapeHtml(p.avatar)} <strong>${escapeHtml(p.name)}</strong>${engine.mode === 'teamUp' ? ` (T${p.teamId + 1})` : ''}</span>
         <span>⚔️ ${p.captures} · 👑 ${engine.getFinishedCount(p)}</span>
       </div>`;
     }).join('');
 
-    const title = engine.mode === 'teamUp'
-      ? `TEAM ${engine.winnerTeam + 1} WINS!`
-      : `${escapeHtml(winner.name.toUpperCase())} WINS!`;
-
+    const title = engine.mode === 'teamUp' ? `TEAM ${engine.winnerTeam + 1} WINS!` : `${escapeHtml(winner.name.toUpperCase())} WINS!`;
     const summary = humanWon
-      ? `Victory! You earned +${prizeWon.toLocaleString()} Coins & +60 XP${resultInfo.leveledUp ? ' — LEVEL UP! 🎉' : ''}`
-      : `Good match! You earned +20 XP for playing.`;
+      ? `Victory! +${prizeWon.toLocaleString()} Coins & +60 XP${leveledUp ? ' — LEVEL UP! 🎉' : ''}`
+      : `Good match! +20 XP earned.`;
 
     setTimeout(() => {
       openCustomModal(title, `
-        <p style="margin:0;text-align:center;font-weight:800;color:#ffe28a">${summary}</p>
+        <p style="margin:0;text-align:center;font-weight:800;color:#ffe28a">${escapeHtml(summary)}</p>
         <div class="rla-list">${rows}</div>
       `, [
-        ['Play Again', () => startMatch({
-          mode: engine.mode,
-          entryMode: engine.entryMode,
-          difficulty: engine.difficulty,
-          prizeCoins: engine.prizeCoins,
-          playerCount: engine.players.length,
-          primaryColor: engine.players[0].color
-        })],
         ['Home', () => exitToHome()]
       ]);
-    }, 650);
+    }, 600);
+  }
+
+  /* ===================== SERVER REAL-TIME MESSAGE HANDLER ===================== */
+  function attachServerEvents() {
+    if (!global.RLAClient) return;
+    global.RLAClient.onMessage(async (msg) => {
+      if (msg.type === 'ERROR') {
+        toast(`⚠️ ${msg.error}`);
+        return;
+      }
+      if (msg.type === 'ROOM_LOBBY') {
+        renderLivePrivateRoomModal(msg.room);
+        return;
+      }
+      if (msg.type === 'ROOM_KICKED') {
+        document.getElementById('rla-dialog')?.remove();
+        toast('You were removed from the room.');
+        return;
+      }
+      if (msg.type === 'TEAM_PARTY_UPDATE') {
+        renderLiveTeamPartyModal(msg.party);
+        return;
+      }
+      if (msg.type === 'QUEUE_STATUS') {
+        toast(`Searching ${msg.queue === 'team-solo' ? '2v2 Team' : 'Online'} players (${msg.count}/${msg.needed})...`);
+        return;
+      }
+      if (msg.type === 'MATCH_STARTED') {
+        document.getElementById('rla-dialog')?.remove();
+        clearTimers();
+        isServerMatch = true;
+        fastMode = Boolean(global.RLAState.getSettings().fastSpeed);
+        engine = global.LudoCore.LudoEngine.deserialize(msg.state);
+        containerEl = document.getElementById('app');
+        if (window.location.hash !== '#play') window.location.hash = 'play';
+        document.title = `Live ${MODE_LABELS[engine.mode] || 'Ludo'} | Royal Ludo Arena`;
+        renderArena();
+        startTurnClock();
+        global.RLAClient.refreshMe();
+        return;
+      }
+      if (msg.type === 'GAME_ROLL' && isServerMatch) {
+        global.RLASound?.diceRoll();
+        if (msg.result?.value === 6) global.RLASound?.rollSix();
+        engine = global.LudoCore.LudoEngine.deserialize(msg.state);
+        if (msg.result?.forfeit) {
+          global.RLASound?.forfeit();
+          showBoardBanner('🚫 THREE 6s — TURN FORFEITED!');
+        } else if (msg.result?.noMoves) {
+          showBoardBanner(`Rolled ${msg.result.value} — No valid moves`);
+        }
+        renderArena();
+        startTurnClock();
+        return;
+      }
+      if (msg.type === 'GAME_MOVE' && isServerMatch) {
+        if (msg.result) await animateMoveResult(msg.result);
+        engine = global.LudoCore.LudoEngine.deserialize(msg.state);
+        renderArena();
+        startTurnClock();
+        return;
+      }
+      if (msg.type === 'GAME_STATE' && isServerMatch) {
+        engine = global.LudoCore.LudoEngine.deserialize(msg.state);
+        renderArena();
+        startTurnClock();
+        return;
+      }
+      if (msg.type === 'EMOTE' && isServerMatch) {
+        showEmoteOnSeat(msg.color, msg.emote);
+        return;
+      }
+      if (msg.type === 'MATCH_FINISHED' && isServerMatch) {
+        clearTimers();
+        engine = global.LudoCore.LudoEngine.deserialize(msg.state);
+        renderArena();
+        global.RLASound?.victory();
+        spawnConfetti(60);
+        const uid = global.RLAClient.getUserId();
+        const myPayout = msg.payouts?.[uid] || { won: false, prizeCoins: 0, leveledUp: false };
+        const winner = engine.players[engine.rankings[0]];
+        global.RLAClient.refreshMe();
+        showVictoryModal(winner, myPayout.won, myPayout.prizeCoins, myPayout.leveledUp);
+      }
+    });
+  }
+
+  /* ===================== LIVE PRIVATE ROOM & 2v2 TEAM PARTY UI ===================== */
+  function renderLivePrivateRoomModal(room) {
+    const myId = global.RLAClient.getUserId();
+    const isHost = room.hostId === myId;
+    const seatRows = room.seats.map((s, idx) => {
+      const col = ['blue', 'red', 'green', 'yellow'][idx];
+      if (!s) {
+        return `<div class="rla-list-row"><span style="opacity:0.6">${COLOR_THEME[col].label} · Waiting for friend...</span><span>Empty</span></div>`;
+      }
+      const badge = s.userId === room.hostId ? '👑 Host' : s.isBot ? '🤖 Bot' : (s.ready ? '✅ Ready' : '⏳ Waiting');
+      const kickBtn = (isHost && s.userId !== myId)
+        ? `<button type="button" class="rla-royal-btn secondary" data-kick="${idx}" style="padding:3px 7px;font-size:11px">✕</button>`
+        : '';
+      return `<div class="rla-list-row ${s.userId === myId ? 'self' : ''}">
+        <span><strong style="color:${COLOR_THEME[col].light}">${COLOR_THEME[col].label}</strong> · ${escapeHtml(s.avatar)} ${escapeHtml(s.name)}</span>
+        <span style="display:flex;align-items:center;gap:6px">${badge} ${kickBtn}</span>
+      </div>`;
+    }).join('');
+
+    const actions = [];
+    if (isHost) {
+      actions.push(['+ Add Bot', () => { global.RLAClient.addBot('medium'); }]);
+      actions.push(['Start Match', () => { global.RLAClient.startRoom(); }]);
+    } else {
+      actions.push(['Toggle Ready', () => { global.RLAClient.toggleReady(); }]);
+    }
+    actions.push(['Leave', () => { global.RLAClient.leaveRoom(); }]);
+
+    const veil = openCustomModal(`LIVE PRIVATE ROOM #${room.code}`, `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#260e05;padding:9px 12px;border-radius:10px;border:1.5px solid #f4bd41">
+        <span style="font-weight:900;font-size:18px;letter-spacing:0.14em;color:#ffe282">${room.code}</span>
+        <button type="button" class="rla-royal-btn" id="rla-copy-live-room" style="padding:5px 10px;font-size:12px">Copy Code</button>
+      </div>
+      <p class="rla-hint">🟢 Live Server Room · Mode: ${MODE_LABELS[room.mode] || room.mode} · Entry: ${room.entryFee} 🪙</p>
+      <div class="rla-list">${seatRows}</div>
+    `, actions, true);
+
+    veil.querySelector('#rla-copy-live-room')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(room.code).catch(() => {});
+      toast(`Room Code ${room.code} copied!`);
+    });
+    veil.querySelectorAll('[data-kick]').forEach(b => {
+      b.addEventListener('click', () => global.RLAClient.removeSeat(Number(b.dataset.kick)));
+    });
+  }
+
+  function renderLiveTeamPartyModal(party) {
+    const myId = global.RLAClient.getUserId();
+    const isHost = party.hostId === myId;
+    const rows = [0, 1].map(idx => {
+      const m = party.members[idx];
+      return m
+        ? `<div class="rla-list-row self"><span>${escapeHtml(m.avatar)} <strong>${escapeHtml(m.name)}</strong> (${idx === 0 ? 'Blue' : 'Green'})</span><span>TEAM 1 ✓</span></div>`
+        : `<div class="rla-list-row"><span style="opacity:0.7">Waiting for Teammate (Green)...</span><span>Share Code</span></div>`;
+    }).join('');
+
+    const actions = isHost
+      ? [['Find 2v2 Opponents', () => global.RLAClient.startTeamParty(party.code)], ['Cancel', () => {}]]
+      : [['Waiting for Host...', () => {}]];
+
+    const veil = openCustomModal(`2v2 DUO PARTY #${party.code}`, `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#260e05;padding:9px 12px;border-radius:10px;border:1.5px solid #f4bd41">
+        <span style="font-weight:900;font-size:18px;letter-spacing:0.14em;color:#ffe282">${party.code}</span>
+        <button type="button" class="rla-royal-btn" id="rla-copy-party" style="padding:5px 10px;font-size:12px">Copy Invite</button>
+      </div>
+      <p class="rla-hint">You & your friend are locked onto Team 1 (Blue + Green) with Partner Finish Assist!</p>
+      <div class="rla-list">${rows}</div>
+    `, actions, true);
+
+    veil.querySelector('#rla-copy-party')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(party.code).catch(() => {});
+      toast(`Team Party Code ${party.code} copied!`);
+    });
+  }
+
+  /* ===================== ENTRY POINTS ===================== */
+  function startMatch(config) {
+    clearTimers();
+    isServerMatch = false;
+    fastMode = Boolean(global.RLAState.getSettings().fastSpeed);
+    engine = new global.LudoCore.LudoEngine(config);
+    containerEl = document.getElementById('app');
+    if (window.location.hash !== '#play') window.location.hash = 'play';
+    document.title = `Playing ${MODE_LABELS[engine.mode] || 'Ludo'} | Royal Ludo Arena`;
+    global.RLAState.saveActiveMatch(engine.serialize());
+    renderArena();
+    startTurnClock();
+    startRushClock();
+  }
+
+  function resumeSavedMatch() {
+    const snap = global.RLAState.loadActiveMatch();
+    if (!snap) return false;
+    clearTimers();
+    isServerMatch = false;
+    fastMode = Boolean(global.RLAState.getSettings().fastSpeed);
+    try {
+      engine = global.LudoCore.LudoEngine.deserialize(snap);
+    } catch {
+      global.RLAState.saveActiveMatch(null);
+      toast('Saved match could not be restored. Invalid saved match data was cleared.');
+      return false;
+    }
+    containerEl = document.getElementById('app');
+    if (window.location.hash !== '#play') window.location.hash = 'play';
+    renderArena();
+    startTurnClock();
+    startRushClock();
+    return true;
+  }
+
+  function openMatchmakingLobby({ mode = 'classic', entryMode = 'online', teamBattle = false, teamComposition = '4Online' }) {
+    if (global.RLAClient?.isOnline()) {
+      if (teamBattle && teamComposition === '2Friends2Online') {
+        const veil = openCustomModal('2v2 FRIENDS + ONLINE', `
+          <p class="rla-hint">Create a Duo Party to team up with a friend on Team 1, or enter your friend's 6-digit Party Code:</p>
+          <input id="rla-party-input" maxlength="6" placeholder="Enter 6-Digit Party Code" style="text-align:center;font-weight:800;letter-spacing:0.12em">
+        `, [
+          ['Create Duo Party', () => global.RLAClient.createTeamParty(mode, 100)],
+          ['Join Party', () => {
+            const c = veil.querySelector('#rla-party-input')?.value.replace(/[^0-9]/g, '');
+            if (c && c.length === 6) global.RLAClient.joinTeamParty(c);
+            else toast('Enter a valid 6-digit Party Code!');
+          }]
+        ]);
+        return;
+      }
+
+      if (teamBattle) global.RLAClient.queueTeamSolo(mode, 100);
+      else global.RLAClient.queueOnline(mode, 100);
+
+      openCustomModal(teamBattle ? '🟢 LIVE 2v2 TEAM MATCHMAKING' : '🟢 LIVE ONLINE MATCHMAKING', `
+        <p style="margin:0;text-align:center;color:#ffe082;font-weight:800">Searching live players on server... (Entry: 100 🪙)</p>
+        <p class="rla-hint" style="text-align:center">Unfilled seats auto-fill with tactical opponents after 6 seconds so you never wait long.</p>
+      `, [['Cancel Queue', () => global.RLAClient.cancelQueue()]]);
+      return;
+    }
+
+    // Offline fallback when server is not started
+    const profile = global.RLAState.get().profile;
+    const colors = ['blue', 'red', 'green', 'yellow'];
+    startMatch({
+      mode: teamBattle ? 'teamUp' : mode,
+      entryMode,
+      difficulty: 'medium',
+      prizeCoins: teamBattle ? 400 : 350,
+      players: [
+        { color: colors[0], name: profile.name, avatar: profile.avatar, isHuman: true, isLocalHuman: true },
+        { color: colors[1], name: BOT_NAMES[0], avatar: BOT_AVATARS[0], isHuman: false, aiLevel: 'medium' },
+        { color: colors[2], name: BOT_NAMES[1], avatar: BOT_AVATARS[1], isHuman: false, aiLevel: 'hard' },
+        { color: colors[3], name: BOT_NAMES[2], avatar: BOT_AVATARS[2], isHuman: false, aiLevel: 'medium' }
+      ]
+    });
+  }
+
+  function openPrivateRoomLobby({ roomAction = 'create', roomCode = '', mode = 'classic' }) {
+    if (global.RLAClient?.isOnline()) {
+      if (roomAction === 'join') {
+        global.RLAClient.joinRoom(roomCode);
+      } else {
+        global.RLAClient.createRoom(mode, 0);
+      }
+      return;
+    }
+    toast('Start the Node server (`npm start`) for live online Private Rooms — launching offline Pass & Play room!');
+    const profile = global.RLAState.get().profile;
+    startMatch({
+      mode,
+      entryMode: 'friends',
+      roomCode: roomCode || String(Math.floor(100000 + Math.random() * 900000)),
+      prizeCoins: 250,
+      players: [
+        { color: 'blue', name: profile.name, avatar: profile.avatar, isHuman: true, isLocalHuman: true },
+        { color: 'red', name: 'Friend 2', avatar: '🦁', isHuman: true, isLocalHuman: true },
+        { color: 'green', name: 'Bot Aanya', avatar: '🤖', isHuman: false, aiLevel: 'medium' },
+        { color: 'yellow', name: 'Bot Rohan', avatar: '🐉', isHuman: false, aiLevel: 'medium' }
+      ]
+    });
+  }
+
+  function openCustomComputerModal(mode = 'classic', difficulty = 'medium') {
+    const profile = global.RLAState.get().profile;
+    const seats = [
+      { color: 'blue', name: profile.name, type: 'human' },
+      { color: 'red', name: 'Bot Vikram', type: 'ai' },
+      { color: 'green', name: 'Bot Aanya', type: 'ai' },
+      { color: 'yellow', name: 'Bot Rohan', type: 'ai' }
+    ];
+    function renderCustom() {
+      const rows = seats.map((s, idx) => `
+        <div class="rla-list-row">
+          <span style="font-weight:800;color:${COLOR_THEME[s.color].light}">${COLOR_THEME[s.color].label}</span>
+          <input data-seat-name="${idx}" value="${escapeHtml(s.name)}" maxlength="16" style="width:120px;padding:4px 7px;font-size:13px">
+          <button type="button" class="rla-royal-btn secondary" data-seat-type="${idx}" style="padding:4px 8px;font-size:11px">${s.type.toUpperCase()}</button>
+        </div>
+      `).join('');
+      const veil = openCustomModal('CUSTOM MATCH SETUP', `<div class="rla-list">${rows}</div>`, [
+        ['Launch Match', () => {
+          const active = seats.filter(s => s.type !== 'off');
+          if (active.length < 2) { toast('Select at least 2 active players!'); return; }
+          startMatch({
+            mode, entryMode: 'computer', difficulty, prizeCoins: 250,
+            players: active.map((s, i) => ({
+              color: s.color, name: s.name.trim() || `Player ${i + 1}`,
+              avatar: s.type === 'human' ? profile.avatar : BOT_AVATARS[i + 1],
+              isHuman: s.type === 'human', isLocalHuman: s.type === 'human', aiLevel: difficulty
+            }))
+          });
+        }]
+      ]);
+      veil.querySelectorAll('[data-seat-name]').forEach(inp => inp.addEventListener('input', () => { seats[Number(inp.dataset.seatName)].name = inp.value; }));
+      veil.querySelectorAll('[data-seat-type]').forEach(btn => btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.seatType);
+        const order = ['human', 'ai', 'off'];
+        seats[idx].type = order[(order.indexOf(seats[idx].type) + 1) % 3];
+        veil.remove();
+        renderCustom();
+      }));
+    }
+    renderCustom();
+  }
+
+  function openTournamentModal() {
+    const profile = global.RLAState.get().profile;
+    openCustomModal('ROYAL TOURNAMENT 🏆', `
+      <p style="margin:0;text-align:center;color:#ffe285;font-weight:800">2-Round Knockout · Grand Prize: 5,000 Coins</p>
+      <div class="rla-list">
+        <div class="rla-list-row self"><span><strong>Semi-Final</strong> (Quick Mode)</span><span>4 Players</span></div>
+        <div class="rla-list-row"><span><strong>Grand Final</strong> (Classic Hard AI)</span><span>5,000 🪙</span></div>
+      </div>
+    `, [
+      ['Enter Tournament', () => {
+        tournamentState = { stage: 'semi' };
+        startMatch({
+          mode: 'quick', entryMode: 'tournament', difficulty: 'medium', prizeCoins: 500,
+          players: [
+            { color: 'blue', name: profile.name, avatar: profile.avatar, isHuman: true, isLocalHuman: true },
+            { color: 'red', name: 'Duke Kabir', avatar: '🦅', isHuman: false, aiLevel: 'medium' },
+            { color: 'green', name: 'Lady Meera', avatar: '🦊', isHuman: false, aiLevel: 'medium' },
+            { color: 'yellow', name: 'Lord Arjun', avatar: '🐯', isHuman: false, aiLevel: 'hard' }
+          ]
+        });
+      }]
+    ]);
   }
 
   function showTournamentAdvanceModal() {
-    openCustomModal('SEMI-FINAL WON! 🏆', `
-      <p style="margin:0;text-align:center">You crushed the Semi-Final! Advance to the <strong>Royal Grand Final</strong> for the <strong>5,000 Coins Trophy</strong>.</p>
-    `, [
+    const profile = global.RLAState.get().profile;
+    openCustomModal('SEMI-FINAL WON! 🏆', '<p style="margin:0;text-align:center">Advance to the <strong>Royal Grand Final</strong> for 5,000 Coins!</p>', [
       ['Play Grand Final', () => {
         tournamentState.stage = 'final';
-        const profile = global.RLAState.get().profile;
         startMatch({
-          mode: 'classic',
-          entryMode: 'tournament',
-          difficulty: 'hard',
-          prizeCoins: 5000,
+          mode: 'classic', entryMode: 'tournament', difficulty: 'hard', prizeCoins: 5000,
           players: [
             { color: 'blue', name: profile.name, avatar: profile.avatar, isHuman: true, isLocalHuman: true },
             { color: 'red', name: 'Champion Vikram', avatar: '🦁', isHuman: false, aiLevel: 'hard' },
@@ -698,27 +960,17 @@
   }
 
   function showRulesModal() {
-    const modeDesc = {
-      classic: 'Roll a 6 to bring pawns out of base. Race all 4 pawns to the center Crown. Star squares (★) are safe zones. Rolling 6, capturing, or reaching Home grants a bonus roll! Three 6s in a row forfeits your turn.',
-      quick: '1 pawn starts pre-deployed on your start square! First player to bring 2 pawns to the center Crown wins.',
-      rush: '3-minute Blitz! Every step = +1 pt, Capture = +25 pts, Home = +50 pts. Highest score when time expires (or first to finish) wins!',
-      oneKillWin: 'Sudden Death! First player to capture ANY opponent pawn OR reach Home with 1 pawn wins immediately!',
-      teamUp: '2v2 Partner Battle! Blue + Green vs Red + Yellow. Partners cannot capture each other. Both partners must finish to win!',
-      popular: 'Classic Ludo with 2 Power Rerolls per player! Tap "Reroll" after any roll to try for a better number.',
-      mask: 'Mystery rivals! Opponent identities stay hidden behind royal masks until the final podium.'
-    };
-    openCustomModal(`RULES — ${MODE_LABELS[engine.mode] || 'LUDO'}`, `<p style="margin:0;line-height:1.5">${modeDesc[engine.mode] || modeDesc.classic}</p>`);
+    const desc = engine.mode === 'teamUp'
+      ? '2v2 Team Battle! Blue + Green vs Red + Yellow. Partners cannot capture each other. When you get all 4 pawns Home, Partner Finish Assist activates so your rolls move your partner\'s pawns!'
+      : 'Roll 6 to exit base. Star squares (★) are safe zones. Rolling 6, capturing, or reaching Home grants a bonus roll. Three consecutive 6s forfeits your turn.';
+    openCustomModal(`RULES — ${MODE_LABELS[engine.mode] || 'LUDO'}`, `<p style="margin:0;line-height:1.5">${desc}</p>`);
   }
 
   function confirmExit() {
-    openCustomModal('LEAVE MATCH?', '<p style="margin:0">Your game is automatically saved so you can resume anytime from Home, or quit cleanly.</p>', [
-      ['Save & Home', () => {
-        if (engine && engine.phase !== 'finished') global.RLAState.saveActiveMatch(engine.serialize());
-        exitToHome();
-      }],
-      ['Abandon Match', () => {
-        global.RLAState.saveActiveMatch(null);
-        tournamentState = null;
+    openCustomModal('LEAVE MATCH?', `<p style="margin:0">${isServerMatch ? 'Leave this live multiplayer room?' : 'Save and return to Home, or abandon match?'}</p>`, [
+      ['Return Home', () => {
+        if (isServerMatch) global.RLAClient?.leaveRoom();
+        else if (engine && engine.phase !== 'finished') global.RLAState.saveActiveMatch(engine.serialize());
         exitToHome();
       }]
     ]);
@@ -726,303 +978,12 @@
 
   function exitToHome() {
     clearTimers();
-    closeChannel();
     engine = null;
+    isServerMatch = false;
     window.location.hash = 'home';
   }
 
-  /* ---------- BroadcastChannel Multi-Tab Local Sync for Private Rooms ---------- */
-  function setupRoomChannel(roomCode) {
-    closeChannel();
-    if (!roomCode || typeof BroadcastChannel === 'undefined') return;
-    try {
-      boardChannel = new BroadcastChannel(`rla-room-${roomCode}`);
-      boardChannel.onmessage = (ev) => {
-        const msg = ev.data;
-        if (!msg || !engine) return;
-        if (msg.type === 'roll' && engine.phase === 'roll') triggerRoll(msg.value, true);
-        else if (msg.type === 'move' && engine.phase === 'move') triggerMove(msg.tokenId, true);
-        else if (msg.type === 'emote') showEmoteOnSeat(msg.color, msg.emote);
-      };
-    } catch {}
-  }
-
-  function broadcastAction(payload) {
-    if (boardChannel) {
-      try { boardChannel.postMessage(payload); } catch {}
-    }
-  }
-
-  /* ---------- Match Entry Points & Lobbies ---------- */
-  function startMatch(config) {
-    clearTimers();
-    closeChannel();
-    fastMode = Boolean(global.RLAState.getSettings().fastSpeed);
-    engine = new global.LudoCore.LudoEngine(config);
-    if (config.roomCode) setupRoomChannel(config.roomCode);
-
-    containerEl = document.getElementById('app');
-    if (window.location.hash !== '#play') {
-      window.location.hash = 'play';
-    }
-    document.title = `Playing ${MODE_LABELS[engine.mode] || 'Ludo'} | Royal Ludo Arena`;
-    global.RLAState.saveActiveMatch(engine.serialize());
-    renderArena();
-    startTurnClock();
-    startRushClock();
-  }
-
-  function resumeSavedMatch() {
-    const snap = global.RLAState.loadActiveMatch();
-    if (!snap) return false;
-    clearTimers();
-    closeChannel();
-    fastMode = Boolean(global.RLAState.getSettings().fastSpeed);
-    try {
-      if (!snap || !Array.isArray(snap.players) || snap.players.length < 2 || snap.players.length > 4 ||
-          !snap.players.every(p => p && Array.isArray(p.tokens) && p.tokens.length === 4 &&
-            p.tokens.every(t => Number.isInteger(t.progress) && t.progress >= -1 && t.progress <= 56)) ||
-          !Number.isInteger(snap.currentTurn) || snap.currentTurn < 0 || snap.currentTurn >= snap.players.length ||
-          !['roll', 'move', 'finished'].includes(snap.phase)) throw Error('Invalid saved match');
-      engine = global.LudoCore.LudoEngine.deserialize(snap);
-    } catch {
-      global.RLAState.saveActiveMatch(null);
-      toast('Saved match could not be restored. Start a new game.');
-      return false;
-    }
-    if (engine.roomCode) setupRoomChannel(engine.roomCode);
-    containerEl = document.getElementById('app');
-    if (window.location.hash !== '#play') window.location.hash = 'play';
-    document.title = `Playing ${MODE_LABELS[engine.mode] || 'Ludo'} | Royal Ludo Arena`;
-    renderArena();
-    startTurnClock();
-    startRushClock();
-    return true;
-  }
-
-  function openMatchmakingLobby({ mode = 'classic', entryMode = 'online', teamBattle = false, teamComposition = '4Online' }) {
-    const profile = global.RLAState.get().profile;
-    const entryFee = 100;
-    const prizeCoins = teamBattle ? 400 : 380;
-
-    if (global.RLAState.get().currency.coins < entryFee) {
-      toast('Not enough coins! Claim Free Coins or Daily Reward first.');
-    }
-
-    const picks = [];
-    const shuffled = [...BOT_NAMES].sort(() => Math.random() - 0.5);
-    for (let i = 0; i < 3; i++) {
-      picks.push({ name: shuffled[i], avatar: BOT_AVATARS[i] });
-    }
-
-    const veil = openCustomModal(teamBattle ? 'OFFLINE 2v2 PRACTICE' : 'OFFLINE BOT PRACTICE', `
-      <p style="margin:0;text-align:center;color:#ffe082;font-weight:800">Mode: ${MODE_LABELS[mode] || mode} · Entry: ${entryFee} 🪙 · Prize: ${prizeCoins} 🪙</p>
-      <div class="rla-list" id="rla-mm-list">
-        <div class="rla-list-row self"><span>${profile.avatar} <strong>${escapeHtml(profile.name)}</strong> (You)</span><span>Ready ✓</span></div>
-        <div class="rla-list-row" id="rla-mm-1"><span>Searching opponent...</span><span>⏳</span></div>
-        <div class="rla-list-row" id="rla-mm-2"><span>${teamBattle && teamComposition === '2Friends2Online' ? '🤝 Partner Slot' : 'Searching opponent...'}</span><span>⏳</span></div>
-        <div class="rla-list-row" id="rla-mm-3"><span>Searching opponent...</span><span>⏳</span></div>
-      </div>
-      <p class="rla-hint" style="text-align:center">OFFLINE BOT MATCH: All opponents are computer-controlled, not live Internet players.</p>
-    `, [
-      ['Cancel', () => {}]
-    ]);
-
-    const timers = [];
-    picks.forEach((bot, i) => {
-      timers.push(setTimeout(() => {
-        const row = veil.querySelector(`#rla-mm-${i + 1}`);
-        if (row) {
-          const role = (teamBattle && i === 1) ? 'Partner ✓' : 'Matched ✓';
-          row.innerHTML = `<span>${bot.avatar} <strong>${mode === 'mask' ? `Masked Rival #${i + 2}` : bot.name}</strong></span><span style="color:#86f28a">${role}</span>`;
-          global.RLASound?.select();
-        }
-      }, 450 * (i + 1)));
-    });
-
-    timers.push(setTimeout(() => {
-      if (!document.body.contains(veil)) return;
-      veil.remove();
-      global.RLAState.spendCurrency(Math.min(entryFee, global.RLAState.get().currency.coins), 0);
-      const colors = ['blue', 'red', 'green', 'yellow'];
-      const players = [
-        { color: colors[0], name: profile.name, avatar: profile.avatar, isHuman: true, isLocalHuman: true },
-        { color: colors[1], name: picks[0].name, avatar: picks[0].avatar, isHuman: false, aiLevel: 'medium' },
-        { color: colors[2], name: picks[1].name, avatar: picks[1].avatar, isHuman: false, aiLevel: 'hard' },
-        { color: colors[3], name: picks[2].name, avatar: picks[2].avatar, isHuman: false, aiLevel: 'medium' }
-      ];
-      startMatch({
-        mode: teamBattle ? 'teamUp' : mode,
-        entryMode,
-        difficulty: 'medium',
-        prizeCoins,
-        players
-      });
-    }, 1850));
-
-    veil.addEventListener('remove', () => timers.forEach(clearTimeout));
-  }
-
-  function openPrivateRoomLobby({ roomAction = 'create', roomCode = '', mode = 'classic' }) {
-    const profile = global.RLAState.get().profile;
-    const code = (roomAction === 'join' && roomCode.length === 6)
-      ? roomCode
-      : String(Math.floor(100000 + Math.random() * 900000));
-
-    const seats = [
-      { color: 'blue', name: profile.name, avatar: profile.avatar, type: 'human' },
-      { color: 'red', name: 'Friend 2', avatar: '🦁', type: 'human' },
-      { color: 'green', name: 'Bot Aanya', avatar: '🤖', type: 'ai' },
-      { color: 'yellow', name: 'Empty', avatar: '➕', type: 'empty' }
-    ];
-
-    function renderRoomModal() {
-      const seatRows = seats.map((s, idx) => `
-        <div class="rla-list-row ${idx === 0 ? 'self' : ''}">
-          <span><strong style="color:${COLOR_THEME[s.color].light}">${COLOR_THEME[s.color].label}</strong> · ${s.avatar} ${escapeHtml(s.name)}</span>
-          ${idx === 0 ? '<span>Host</span>' : `<button type="button" class="rla-royal-btn secondary" data-toggle-seat="${idx}" style="padding:4px 9px;font-size:11px">${s.type === 'human' ? 'Local Human' : s.type === 'ai' ? 'AI Bot' : 'Empty'}</button>`}
-        </div>
-      `).join('');
-
-      const veil = openCustomModal(`PRIVATE ROOM #${code}`, `
-        <div style="display:flex;align-items:center;justify-content:space-between;background:#260e05;padding:10px 12px;border-radius:10px;border:1.5px solid #f4bd41">
-          <span style="font-weight:900;font-size:18px;letter-spacing:0.14em;color:#ffe282">${code}</span>
-          <button type="button" class="rla-royal-btn" id="rla-copy-room" style="padding:6px 10px;font-size:12px">Copy Code</button>
-        </div>
-        <p class="rla-hint">Tap seats below to switch between Local Friend, AI Bot, or Empty. Same-browser tabs on this device only. This room is NOT an Internet multiplayer lobby.</p>
-        <div class="rla-list">${seatRows}</div>
-      `, [
-        ['Start Room Match', () => {
-          const active = seats.filter(s => s.type !== 'empty');
-          if (active.length < 2) { toast('Need at least 2 players!'); return; }
-          startMatch({
-            mode,
-            entryMode: 'friends',
-            roomCode: code,
-            prizeCoins: 300,
-            players: active.map(s => ({
-              color: s.color,
-              name: s.name,
-              avatar: s.avatar,
-              isHuman: s.type === 'human',
-              isLocalHuman: s.type === 'human',
-              aiLevel: 'medium'
-            }))
-          });
-        }]
-      ]);
-
-      veil.querySelector('#rla-copy-room')?.addEventListener('click', () => {
-        navigator.clipboard?.writeText(code).catch(() => {});
-        global.RLASound?.select();
-        toast(`Room Code ${code} — local browser tabs only`);
-      });
-
-      veil.querySelectorAll('[data-toggle-seat]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = Number(btn.dataset.toggleSeat);
-          const cur = seats[idx];
-          if (cur.type === 'human') { cur.type = 'ai'; cur.name = `Bot ${idx + 1}`; cur.avatar = '🤖'; }
-          else if (cur.type === 'ai') { cur.type = 'empty'; cur.name = 'Empty'; cur.avatar = '➕'; }
-          else { cur.type = 'human'; cur.name = `Friend ${idx + 1}`; cur.avatar = BOT_AVATARS[idx]; }
-          global.RLASound?.click();
-          veil.remove();
-          renderRoomModal();
-        });
-      });
-    }
-
-    renderRoomModal();
-  }
-
-  function openCustomComputerModal(mode = 'classic', difficulty = 'medium') {
-    const profile = global.RLAState.get().profile;
-    const seats = [
-      { color: 'blue', name: profile.name, type: 'human', aiLevel: difficulty },
-      { color: 'red', name: 'Bot Vikram', type: 'ai', aiLevel: difficulty },
-      { color: 'green', name: 'Bot Aanya', type: 'ai', aiLevel: difficulty },
-      { color: 'yellow', name: 'Bot Rohan', type: 'ai', aiLevel: difficulty }
-    ];
-
-    function renderCustom() {
-      const rows = seats.map((s, idx) => `
-        <div class="rla-list-row">
-          <span style="font-weight:800;color:${COLOR_THEME[s.color].light}">${COLOR_THEME[s.color].label}</span>
-          <input data-seat-name="${idx}" value="${escapeHtml(s.name)}" maxlength="16" style="width:120px;padding:4px 7px;font-size:13px">
-          <button type="button" class="rla-royal-btn secondary" data-seat-type="${idx}" style="padding:4px 8px;font-size:11px">${s.type.toUpperCase()}</button>
-        </div>
-      `).join('');
-
-      const veil = openCustomModal('CUSTOM MATCH SETUP', `
-        <p class="rla-hint">Customize player names and toggle each seat between HUMAN, AI, or OFF.</p>
-        <div class="rla-list">${rows}</div>
-      `, [
-        ['Launch Custom Match', () => {
-          const active = seats.filter(s => s.type !== 'off');
-          if (active.length < 2) { toast('Select at least 2 active players!'); return; }
-          startMatch({
-            mode,
-            entryMode: 'computer',
-            difficulty,
-            prizeCoins: 250,
-            players: active.map((s, i) => ({
-              color: s.color,
-              name: s.name.trim() || `Player ${i + 1}`,
-              avatar: s.type === 'human' ? profile.avatar : BOT_AVATARS[i + 1],
-              isHuman: s.type === 'human',
-              isLocalHuman: s.type === 'human',
-              aiLevel: difficulty
-            }))
-          });
-        }]
-      ]);
-
-      veil.querySelectorAll('[data-seat-name]').forEach(inp => {
-        inp.addEventListener('input', () => { seats[Number(inp.dataset.seatName)].name = inp.value; });
-      });
-      veil.querySelectorAll('[data-seat-type]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = Number(btn.dataset.seatType);
-          const order = ['human', 'ai', 'off'];
-          seats[idx].type = order[(order.indexOf(seats[idx].type) + 1) % order.length];
-          global.RLASound?.click();
-          veil.remove();
-          renderCustom();
-        });
-      });
-    }
-    renderCustom();
-  }
-
-  function openTournamentModal() {
-    const profile = global.RLAState.get().profile;
-    openCustomModal('ROYAL TOURNAMENT 🏆', `
-      <p style="margin:0;text-align:center;color:#ffe285;font-weight:800">2-Round Knockout · Grand Prize: 5,000 Coins</p>
-      <div class="rla-list">
-        <div class="rla-list-row self"><span><strong>Round 1: Semi-Final</strong> (Quick Mode)</span><span>4 Players</span></div>
-        <div class="rla-list-row"><span><strong>Round 2: Grand Final</strong> (Classic Hard AI)</span><span>5,000 🪙</span></div>
-      </div>
-      <p class="rla-hint" style="text-align:center">Win the Semi-Final to unlock the Royal Grand Final!</p>
-    `, [
-      ['Enter Tournament (Free)', () => {
-        tournamentState = { stage: 'semi' };
-        startMatch({
-          mode: 'quick',
-          entryMode: 'tournament',
-          difficulty: 'medium',
-          prizeCoins: 500,
-          players: [
-            { color: 'blue', name: profile.name, avatar: profile.avatar, isHuman: true, isLocalHuman: true },
-            { color: 'red', name: 'Duke Kabir', avatar: '🦅', isHuman: false, aiLevel: 'medium' },
-            { color: 'green', name: 'Lady Meera', avatar: '🦊', isHuman: false, aiLevel: 'medium' },
-            { color: 'yellow', name: 'Lord Arjun', avatar: '🐯', isHuman: false, aiLevel: 'hard' }
-          ]
-        });
-      }]
-    ]);
-  }
-
-  function openCustomModal(title, htmlBody, actions = []) {
+  function openCustomModal(title, htmlBody, actions = [], keepOpenOnAction = false) {
     document.getElementById('rla-dialog')?.remove();
     const veil = document.createElement('div');
     veil.id = 'rla-dialog';
@@ -1031,11 +992,7 @@
     card.className = 'rla-dialog';
     card.setAttribute('role', 'dialog');
     card.setAttribute('aria-modal', 'true');
-    card.innerHTML = `
-      <header class="rla-dialog-title">${title}<button class="rla-dialog-x" type="button" aria-label="Close">×</button></header>
-      <div class="rla-dialog-body" style="white-space:normal">${htmlBody}</div>
-      <footer></footer>
-    `;
+    card.innerHTML = `<header class="rla-dialog-title">${escapeHtml(title)}<button class="rla-dialog-x" type="button" aria-label="Close">×</button></header><div class="rla-dialog-body" style="white-space:normal">${htmlBody}</div><footer></footer>`;
     const foot = card.querySelector('footer');
     if (actions.length) {
       for (const [label, fn] of actions) {
@@ -1043,7 +1000,11 @@
         b.type = 'button';
         b.className = 'rla-dialog-action';
         b.textContent = label;
-        b.addEventListener('click', () => { global.RLASound?.click(); veil.remove(); fn(); });
+        b.addEventListener('click', () => {
+          global.RLASound?.click();
+          if (!keepOpenOnAction) veil.remove();
+          fn();
+        });
         foot.append(b);
       }
     } else {
@@ -1054,20 +1015,21 @@
       b.addEventListener('click', () => { global.RLASound?.click(); veil.remove(); });
       foot.append(b);
     }
-    card.querySelector('.rla-dialog-x')?.addEventListener('click', () => { global.RLASound?.click(); veil.remove(); });
+    card.querySelector('.rla-dialog-x')?.addEventListener('click', () => veil.remove());
     veil.addEventListener('click', e => { if (e.target === veil) veil.remove(); });
     veil.append(card);
     document.body.append(veil);
+    activeLobbyModal = veil;
     return veil;
   }
 
-  // Spacebar shortcut to roll dice
   if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', attachServerEvents);
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space' && window.location.hash === '#play' && engine && engine.phase === 'roll' && !animating) {
-        if (engine.getCurrentPlayer()?.isLocalHuman && !document.getElementById('rla-dialog')) {
+        if (canLocalControlCurrentTurn() && !document.getElementById('rla-dialog')) {
           e.preventDefault();
-          triggerRoll();
+          requestRoll();
         }
       }
     });
@@ -1083,6 +1045,6 @@
     openCustomModal,
     toast,
     isActive: () => Boolean(engine),
-    destroy: () => { clearTimers(); closeChannel(); engine = null; }
+    destroy: () => { clearTimers(); engine = null; isServerMatch = false; }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
