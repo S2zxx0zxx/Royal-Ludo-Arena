@@ -152,3 +152,27 @@ test('serialize and deserialize preserve full match state', () => {
   assert.equal(restored.players[0].tokens[0].progress, 0);
   assert.equal(restored.players[0].rerollsLeft, 2);
 });
+
+test('teamUp Partner Finish Assist lets finished player roll and move partner pawns', () => {
+  const eng = new LudoEngine({
+    mode: 'teamUp',
+    players: [
+      { color: 'blue', name: 'B', isHuman: true },
+      { color: 'red', name: 'R', isHuman: false },
+      { color: 'green', name: 'G', isHuman: false },
+      { color: 'yellow', name: 'Y', isHuman: false }
+    ]
+  });
+  // Blue finishes all 4 pawns; Green still has pawns in play
+  eng.players[0].tokens.forEach(t => { t.progress = MAX_PROGRESS; });
+  eng.players[0].finishedRank = 1;
+  eng.players[2].tokens[0].progress = 10;
+  eng.currentTurn = 0;
+
+  const roll = eng.rollDice(4);
+  assert.equal(roll.partnerAssist, true);
+  assert.equal(roll.controlledPlayerId, 2);
+  const mv = eng.moveToken(0);
+  assert.equal(mv.partnerAssist, true);
+  assert.equal(eng.players[2].tokens[0].progress, 14);
+});

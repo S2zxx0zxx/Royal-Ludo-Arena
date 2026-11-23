@@ -1,26 +1,16 @@
 /**
- * Royal Ludo Arena — Authentic 15x15 Ludo Game Rules Engine
- * Pure logic module (works in both Browser and Node.js test runner).
+ * Royal Ludo Arena v2.0.0 — Authoritative 15x15 Ludo Game Rules Engine
+ * Shared identically by Browser Client and Node.js Authoritative Server.
  *
- * Board Orientation (matching Royal Ludo Arena artwork):
- *   Top-Left:     RED    (track start index 0)
- *   Top-Right:    GREEN  (track start index 13)
- *   Bottom-Right: YELLOW (track start index 26)
- *   Bottom-Left:  BLUE   (track start index 39)
- *
- * Token progress values:
- *   -1       : In home yard (base)
- *   0 .. 50  : On the 52-cell main loop (51 steps around outer track)
- *   51 .. 55 : On the 5 colored home-stretch cells
- *   56       : Reached center Crown Home (finished!)
+ * Includes full 2v2 Team Battle Partner Finish Assist:
+ * When a player gets all pawns Home in `teamUp` mode, they continue taking turns
+ * rolling and moving their partner's remaining pawns until both teammates finish!
  */
 (function (global) {
   'use strict';
 
   const COLORS = ['blue', 'red', 'green', 'yellow'];
 
-  // Clockwise 52-cell outer track coordinates [row, col] on a 15x15 grid (0..14)
-  // Index 0 is RED's start square (row 6, col 1)
   const MAIN_TRACK = [
     [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],
     [5, 6], [4, 6], [3, 6], [2, 6], [1, 6], [0, 6],
@@ -36,15 +26,8 @@
     [7, 0], [6, 0]
   ];
 
-  // Starting track index for each color
-  const START_INDEX = {
-    red: 0,
-    green: 13,
-    yellow: 26,
-    blue: 39
-  };
+  const START_INDEX = { red: 0, green: 13, yellow: 26, blue: 39 };
 
-  // Colored home-stretch coordinates (progress 51..55) + center arrival (56)
   const HOME_STRETCH = {
     red:    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]],
     green:  [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7]],
@@ -52,7 +35,6 @@
     blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7]]
   };
 
-  // Yard base slot coordinates [row, col] for the 4 pawns in each corner
   const YARD_SLOTS = {
     red:    [[1.6, 1.6], [1.6, 3.6], [3.6, 1.6], [3.6, 3.6]],
     green:  [[1.6, 10.4], [1.6, 12.4], [3.6, 10.4], [3.6, 12.4]],
@@ -60,18 +42,13 @@
     blue:   [[10.4, 1.6], [10.4, 3.6], [12.4, 1.6], [12.4, 3.6]]
   };
 
-  // 8 Star Safe Zones on MAIN_TRACK: 4 start squares + 4 star squares
   const SAFE_TRACK_INDICES = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
-
   const MAX_PROGRESS = 56;
-
-  // Turn order clockwise starting from bottom-left (blue -> red -> green -> yellow)
   const CLOCKWISE_ORDER = ['blue', 'red', 'green', 'yellow'];
 
   function getSeatColors(playerCount, primaryColor = 'blue') {
     const startIdx = Math.max(0, CLOCKWISE_ORDER.indexOf(primaryColor));
     if (playerCount === 2) {
-      // Opposite corners for balanced 1v1
       return [CLOCKWISE_ORDER[startIdx], CLOCKWISE_ORDER[(startIdx + 2) % 4]];
     }
     if (playerCount === 3) {
@@ -97,8 +74,7 @@
   function getTokenCoords(color, tokenIndex, progress) {
     if (progress < 0) return YARD_SLOTS[color][tokenIndex];
     if (progress <= 50) return MAIN_TRACK[getTrackIndex(color, progress)];
-    const stretchIdx = Math.min(5, progress - 51);
-    return HOME_STRETCH[color][stretchIdx];
+    return HOME_STRETCH[color][Math.min(5, progress - 51)];
   }
 
   function isSafeProgress(color, progress) {
@@ -108,8 +84,8 @@
 
   class LudoEngine {
     constructor(config = {}) {
-      this.mode = config.mode || 'classic'; // classic | quick | rush | oneKillWin | teamUp | popular | mask
-      this.entryMode = config.entryMode || 'computer'; // computer | pass | online | team | friends | tournament
+      this.mode = config.mode || 'classic';
+      this.entryMode = config.entryMode || 'computer';
       this.difficulty = config.difficulty || 'medium';
       this.prizeCoins = config.prizeCoins || 0;
       this.roomCode = config.roomCode || '';
@@ -121,13 +97,13 @@
         const teamId = this.mode === 'teamUp'
           ? ((p.color === 'blue' || p.color === 'green') ? 0 : 1)
           : idx;
-        // In Quick or Rush mode, 1 token starts pre-deployed on start square (0) for instant action
         const tokens = [0, 1, 2, 3].map(tid => ({
           id: tid,
           progress: (tid === 0 && (this.mode === 'quick' || this.mode === 'rush')) ? 0 : -1
         }));
         return {
           id: idx,
+          userId: p.userId || null,
           color: p.color,
           name: p.name || `Player ${idx + 1}`,
           displayName: this.mode === 'mask' && !p.isHuman ? `Masked Rival #${idx + 1}` : (p.name || `Player ${idx + 1}`),
@@ -146,11 +122,12 @@
       });
 
       this.currentTurn = 0;
-      this.phase = 'roll'; // 'roll' | 'move' | 'finished'
+      this.phase = 'roll';
       this.diceValue = null;
       this.consecutiveSixes = 0;
       this.validTokenIds = [];
-      this.rankings = []; // player indices in finish order
+      this.controllingPlayerId = 0; // Normally === currentTurn; in Team 2v2 Partner Assist, points to partner!
+      this.rankings = [];
       this.winnerTeam = null;
       this.turnCount = 0;
       this.lastEvent = null;
@@ -174,6 +151,35 @@
       return this.players[this.currentTurn];
     }
 
+    getPartner(playerIndex) {
+      if (this.mode !== 'teamUp') return null;
+      const p = this.players[playerIndex];
+      if (!p) return null;
+      return this.players.find(other => other.id !== p.id && other.teamId === p.teamId) || null;
+    }
+
+    /**
+     * In Team 2v2, if the current player has finished all their own pawns,
+     * they control their partner's pawns (Partner Finish Assist).
+     */
+    getControlledPlayer(playerIndex = this.currentTurn) {
+      const p = this.players[playerIndex];
+      if (!p) return null;
+      if (this.mode === 'teamUp' && p.finishedRank > 0) {
+        const partner = this.getPartner(playerIndex);
+        if (partner && partner.finishedRank === 0) return partner;
+      }
+      return p;
+    }
+
+    getTeamProgress(teamId) {
+      const members = this.players.filter(p => p.teamId === teamId);
+      const needed = this.tokensNeededToWin() * members.length;
+      const finished = members.reduce((sum, m) => sum + this.getFinishedCount(m), 0);
+      const score = members.reduce((sum, m) => sum + m.score, 0);
+      return { teamId, finished, needed, score, pct: needed ? Math.round((finished / needed) * 100) : 0 };
+    }
+
     tokensNeededToWin() {
       if (this.mode === 'quick') return 2;
       if (this.mode === 'oneKillWin') return 1;
@@ -184,10 +190,6 @@
       return player.tokens.filter(t => t.progress === MAX_PROGRESS).length;
     }
 
-    isPlayerFinished(player) {
-      return player.finishedRank > 0;
-    }
-
     canMoveToken(player, token, dice) {
       if (!token || dice < 1 || dice > 6) return false;
       if (token.progress === MAX_PROGRESS) return false;
@@ -196,22 +198,21 @@
     }
 
     getValidTokenIds(playerIndex, dice) {
-      const player = this.players[playerIndex];
-      if (!player) return [];
+      const controlled = this.getControlledPlayer(playerIndex);
+      if (!controlled) return [];
       const ids = [];
-      for (const token of player.tokens) {
-        if (this.canMoveToken(player, token, dice)) {
-          ids.push(token.id);
-        }
+      for (const token of controlled.tokens) {
+        if (this.canMoveToken(controlled, token, dice)) ids.push(token.id);
       }
       return ids;
     }
 
     rollDice(forcedValue = null) {
-      if (this.phase !== 'roll') {
-        return { ok: false, reason: 'Not in roll phase' };
-      }
-      const player = this.getCurrentPlayer();
+      if (this.phase !== 'roll') return { ok: false, reason: 'Not in roll phase' };
+      const roller = this.getCurrentPlayer();
+      const controlled = this.getControlledPlayer(this.currentTurn);
+      this.controllingPlayerId = controlled.id;
+
       const value = (forcedValue >= 1 && forcedValue <= 6)
         ? forcedValue
         : (Math.floor(Math.random() * 6) + 1);
@@ -221,16 +222,11 @@
 
       if (value === 6) {
         this.consecutiveSixes += 1;
-        player.sixes += 1;
+        roller.sixes += 1;
         if (this.consecutiveSixes >= 3) {
-          // Authentic three-6s forfeit rule
           this.consecutiveSixes = 0;
           this.validTokenIds = [];
-          const event = {
-            type: 'three-sixes-forfeit',
-            playerIndex: this.currentTurn,
-            diceValue: value
-          };
+          const event = { type: 'three-sixes-forfeit', playerIndex: this.currentTurn, diceValue: value };
           this.lastEvent = event;
           this._advanceTurn();
           return { ok: true, value, forfeit: true, validTokenIds: [], event };
@@ -243,11 +239,7 @@
       this.validTokenIds = valid;
 
       if (valid.length === 0) {
-        const event = {
-          type: 'no-moves',
-          playerIndex: this.currentTurn,
-          diceValue: value
-        };
+        const event = { type: 'no-moves', playerIndex: this.currentTurn, controlledPlayerId: controlled.id, diceValue: value };
         this.lastEvent = event;
         this._advanceTurn();
         return { ok: true, value, noMoves: true, validTokenIds: [], event };
@@ -257,11 +249,13 @@
       const event = {
         type: 'rolled',
         playerIndex: this.currentTurn,
+        controlledPlayerId: controlled.id,
+        partnerAssist: controlled.id !== roller.id,
         diceValue: value,
         validTokenIds: valid.slice()
       };
       this.lastEvent = event;
-      return { ok: true, value, validTokenIds: valid.slice(), event };
+      return { ok: true, value, validTokenIds: valid.slice(), controlledPlayerId: controlled.id, partnerAssist: controlled.id !== roller.id, event };
     }
 
     usePowerReroll() {
@@ -279,69 +273,60 @@
       if (this.phase !== 'move') return { ok: false, reason: 'Not in move phase' };
       if (!this.validTokenIds.includes(tokenId)) return { ok: false, reason: 'Invalid token move' };
 
-      const player = this.getCurrentPlayer();
-      const token = player.tokens[tokenId];
+      const roller = this.getCurrentPlayer();
+      const controlled = this.getControlledPlayer(this.currentTurn);
+      const token = controlled.tokens[tokenId];
       const dice = this.diceValue;
       const fromProgress = token.progress;
       const toProgress = fromProgress === -1 ? 0 : fromProgress + dice;
 
-      // Build step-by-step path for smooth hop animation
       const pathSteps = [];
-      if (fromProgress === -1) {
-        pathSteps.push(0);
-      } else {
-        for (let p = fromProgress + 1; p <= toProgress; p++) {
-          pathSteps.push(p);
-        }
-      }
+      if (fromProgress === -1) pathSteps.push(0);
+      else for (let p = fromProgress + 1; p <= toProgress; p++) pathSteps.push(p);
 
       token.progress = toProgress;
-      player.score += (fromProgress === -1 ? 6 : dice);
+      roller.score += (fromProgress === -1 ? 6 : dice);
 
-      // Check captures on main track (0..50) if landing square is NOT a safe zone
       const captured = [];
-      const landedTrack = getTrackIndex(player.color, toProgress);
-      const landedSafe = isSafeProgress(player.color, toProgress);
+      const landedTrack = getTrackIndex(controlled.color, toProgress);
+      const landedSafe = isSafeProgress(controlled.color, toProgress);
 
       if (landedTrack !== -1 && !landedSafe) {
         for (const opp of this.players) {
-          if (opp.id === player.id) continue;
-          if (this.mode === 'teamUp' && opp.teamId === player.teamId) continue;
+          if (opp.id === controlled.id) continue;
+          if (this.mode === 'teamUp' && opp.teamId === controlled.teamId) continue;
           for (const oppTok of opp.tokens) {
             if (oppTok.progress >= 0 && oppTok.progress <= 50 && getTrackIndex(opp.color, oppTok.progress) === landedTrack) {
               oppTok.progress = -1;
               captured.push({ playerIndex: opp.id, color: opp.color, tokenId: oppTok.id });
-              player.captures += 1;
-              player.score += 25;
+              roller.captures += 1;
+              roller.score += 25;
             }
           }
         }
       }
 
       const reachedHome = toProgress === MAX_PROGRESS;
-      if (reachedHome) {
-        player.score += 50;
-      }
+      if (reachedHome) roller.score += 50;
 
-      // Check win conditions
       let playerJustFinished = false;
       let gameFinished = false;
 
       if (this.mode === 'oneKillWin' && (captured.length > 0 || reachedHome)) {
-        player.finishedRank = 1;
-        this.rankings = [player.id, ...this.players.filter(p => p.id !== player.id).map(p => p.id)];
+        controlled.finishedRank = 1;
+        this.rankings = [controlled.id, ...this.players.filter(p => p.id !== controlled.id).map(p => p.id)];
         this.phase = 'finished';
         playerJustFinished = true;
         gameFinished = true;
-      } else if (this.getFinishedCount(player) >= this.tokensNeededToWin() && player.finishedRank === 0) {
+      } else if (this.getFinishedCount(controlled) >= this.tokensNeededToWin() && controlled.finishedRank === 0) {
         playerJustFinished = true;
-        this.rankings.push(player.id);
-        player.finishedRank = this.rankings.length;
+        this.rankings.push(controlled.id);
+        controlled.finishedRank = this.rankings.length;
 
         if (this.mode === 'teamUp') {
-          const teamMembers = this.players.filter(p => p.teamId === player.teamId);
+          const teamMembers = this.players.filter(p => p.teamId === controlled.teamId);
           if (teamMembers.every(m => m.finishedRank > 0)) {
-            this.winnerTeam = player.teamId;
+            this.winnerTeam = controlled.teamId;
             for (const other of this.players) {
               if (!this.rankings.includes(other.id)) this.rankings.push(other.id);
             }
@@ -361,12 +346,14 @@
         }
       }
 
-      const bonusTurn = !gameFinished && !playerJustFinished && (dice === 6 || captured.length > 0 || reachedHome);
+      const bonusTurn = !gameFinished && (dice === 6 || captured.length > 0 || reachedHome) && (!playerJustFinished || this.mode === 'teamUp');
 
       const moveResult = {
         ok: true,
-        playerIndex: player.id,
-        color: player.color,
+        playerIndex: controlled.id,
+        rollerIndex: roller.id,
+        partnerAssist: controlled.id !== roller.id,
+        color: controlled.color,
         tokenId,
         fromProgress,
         toProgress,
@@ -410,12 +397,26 @@
       const n = this.players.length;
       for (let step = 1; step <= n; step++) {
         const next = (this.currentTurn + step) % n;
-        if (this.players[next].finishedRank === 0) {
+        const candidate = this.players[next];
+        if (candidate.finishedRank === 0) {
           this.currentTurn = next;
+          this.controllingPlayerId = next;
           this.phase = 'roll';
           this.diceValue = null;
           this.validTokenIds = [];
           return;
+        }
+        // In Team 2v2, a finished player still takes turns to assist their unfinished partner!
+        if (this.mode === 'teamUp') {
+          const partner = this.getPartner(next);
+          if (partner && partner.finishedRank === 0) {
+            this.currentTurn = next;
+            this.controllingPlayerId = partner.id;
+            this.phase = 'roll';
+            this.diceValue = null;
+            this.validTokenIds = [];
+            return;
+          }
         }
       }
       this.phase = 'finished';
@@ -432,6 +433,7 @@
         rushSecondsLeft: this.rushSecondsLeft,
         players: this.players,
         currentTurn: this.currentTurn,
+        controllingPlayerId: this.controllingPlayerId,
         phase: this.phase,
         diceValue: this.diceValue,
         consecutiveSixes: this.consecutiveSixes,
@@ -443,6 +445,22 @@
     }
 
     static deserialize(snap) {
+      const validModes = ['classic', 'quick', 'rush', 'oneKillWin', 'popular', 'mask', 'teamUp'];
+      if (!snap || typeof snap !== 'object' || !validModes.includes(snap.mode) ||
+          !['roll', 'move', 'finished'].includes(snap.phase) ||
+          !Array.isArray(snap.players) || snap.players.length < 2 || snap.players.length > 4 ||
+          !Number.isInteger(snap.currentTurn) || snap.currentTurn < 0 || snap.currentTurn >= snap.players.length ||
+          !snap.players.every((p, i) => p && p.id === i && COLORS.includes(p.color) &&
+            typeof p.name === 'string' && p.name.length <= 80 &&
+            Array.isArray(p.tokens) && p.tokens.length === 4 &&
+            p.tokens.every((t, tid) => t && t.id === tid && Number.isInteger(t.progress) && t.progress >= -1 && t.progress <= MAX_PROGRESS)) ||
+          new Set(snap.players.map(p => p.color)).size !== snap.players.length ||
+          !Array.isArray(snap.validTokenIds) ||
+          snap.validTokenIds.some(id => !Number.isInteger(id) || id < 0 || id > 3) ||
+          !Array.isArray(snap.rankings) ||
+          (snap.diceValue !== null && (snap.diceValue < 1 || snap.diceValue > 6 || !Number.isInteger(snap.diceValue)))) {
+        throw new Error('Invalid saved match');
+      }
       const eng = new LudoEngine({
         mode: snap.mode,
         entryMode: snap.entryMode,
@@ -455,6 +473,7 @@
       });
       eng.players = snap.players;
       eng.currentTurn = snap.currentTurn;
+      eng.controllingPlayerId = snap.controllingPlayerId ?? snap.currentTurn;
       eng.phase = snap.phase;
       eng.diceValue = snap.diceValue;
       eng.consecutiveSixes = snap.consecutiveSixes || 0;

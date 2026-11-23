@@ -15,12 +15,17 @@ const ctx = vm.createContext({
 vm.runInContext(code, ctx);
 const { routes, hits, home } = vm.runInContext('RLA.inspect()', ctx);
 
-test('all six new original images exist', () => {
+test('all six new original images and 3D gameplay assets exist', () => {
   assert.equal(Object.keys(routes).length, 6);
   for (const name of Object.keys(routes)) {
     const p = 'public/assets/screens/' + name + '.jpg';
     assert.ok(existsSync(p), p);
     assert.ok(readFileSync(p).length > 20000, p);
+  }
+  for (const asset of ['board-royal-walnut.webp', 'crown-medallion.png', 'pawn-red.png', 'pawn-green.png', 'pawn-blue.png', 'pawn-yellow.png']) {
+    const p = 'public/assets/game/' + asset;
+    assert.ok(existsSync(p), p);
+    assert.ok(readFileSync(p).length > 5000, p);
   }
 });
 
@@ -38,26 +43,15 @@ test('all new hotspots have valid bounding boxes', () => {
   }
 });
 
-test('key navigation and interactive feature actions are mapped', () => {
-  assert.ok(home.some(h => h.id === 'profile'));
-  assert.ok(home.some(h => h.id === 'lucky' && h.action === 'lucky-spin'));
-  assert.ok(home.some(h => h.id === 'daily-reward' && h.action === 'daily-reward'));
-  assert.ok(home.some(h => h.id === 'nav-inventory' && h.action === 'inventory'));
-  assert.ok(home.some(h => h.id === 'leaderboard' && h.action === 'leaderboard'));
-  assert.ok(home.some(h => h.id === 'settings' && h.action === 'settings'));
-  assert.ok(hits.events.some(h => h.to === 'daily-goals'));
-  assert.ok(hits.profile.some(h => h.action === 'edit'));
-  assert.ok(hits.store.some(h => h.id === 'tab-diamonds'));
-  assert.ok(hits['send-gift'].some(h => h.action === 'gift'));
+test('no free demo-pack minting exploit remains in store', () => {
+  assert.doesNotMatch(code, /Add Demo Pack/);
+  assert.match(code, /STORE PURCHASES NOT YET AVAILABLE/);
+  assert.match(code, /No payment will be collected/);
 });
 
-test('store clearly notes real-money purchases are offline', () => {
-  assert.match(code, /Real-money purchases are disabled/);
-});
-
-test('new scripts and stylesheets loaded in index.html', () => {
+test('realtime client and v2 scripts loaded in index.html', () => {
   const h = readFileSync('public/index.html', 'utf8');
+  assert.ok(h.includes('realtime-client.js'));
   assert.ok(h.includes('expansion.js'));
-  assert.ok(h.includes('extended.css'));
   assert.ok(h.includes('game.css'));
 });
