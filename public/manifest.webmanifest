@@ -1,9 +1,19 @@
 {
   "name": "Royal Ludo Arena",
   "short_name": "Royal Ludo",
+  "description": "Royal Ludo Arena — Classic, Quick, Rush, Team 2v2, AI & Pass-and-Play Ludo game.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#351809",
-  "theme_color": "#351809"
+  "theme_color": "#351809",
+  "icons": [
+    {
+      "src": "./assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
