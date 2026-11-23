@@ -170,7 +170,7 @@ const RLA = (() => {
     case 'route': go(hit.to);break;
     case 'info':modal(hit.label,hit.message);break;
     case 'edit':edit();break;
-    case 'copy':{const text=hit.value; if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>modal('Copied',`Player ID ${text} copied.`)).catch(()=>modal('Player ID',text))}else modal('Player ID',text);break;}
+    case 'copy':modal('Example ID', 'The ID shown in concept artwork is sample data. A real copyable Player ID requires player account creation.');break;
     case 'mode':state.mode=hit.value;draw();break;
     case 'purchase':modal('Store Preview',`${hit.value}. Prices are design samples; purchases are disabled until a Play Billing integration and product verification are complete.`);break;
     case 'gift':modal('Gift Preview',`${hit.value}. Sending gifts is not available until a friend recipient, secure checkout and fulfillment are implemented.`);break;
@@ -194,7 +194,7 @@ const RLA = (() => {
         const title=document.createElement('h2');title.textContent=state.mode==='diamonds'?'Diamond Store':'Royal Offers';panel.append(title);
         const note=document.createElement('p');note.textContent='The approved original artwork for this tab has not been provided. Product checkout is unavailable.';panel.append(note);
         const list=state.mode==='diamonds'?[['100 Diamonds','₹79'],['500 Diamonds','₹329'],['2,000 Diamonds','₹999']]:[['Special Bundles','Preview only'],['Royal Pass Benefits','Not available']];
-        for(const [p,price] of list){const button=document.createElement('button');button.textContent=`${p} · ${price}`;button.addEventListener('click',()=>modal('Store preview','Purchases are not connected.'));panel.append(button)}stage.append(panel);
+        for(const [p,price] of list){const button=document.createElement('button');button.textContent=`${p} · ${price}`;button.addEventListener('click',()=>modal('Store preview','Purchases are not connected.'));panel.append(button)}if(state.mode==='offers'){const gift=document.createElement('button');gift.textContent='Open Send Gift';gift.addEventListener('click',()=>go('send-gift'));panel.append(gift)}stage.append(panel);
       }
     }
     return stage;
