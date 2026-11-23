@@ -1,46 +1,40 @@
-# Royal Ludo Arena
+# Royal Ludo Arena (v1.0.0 — Offline Playable Foundation)
 
-Original-art mobile game UI foundation. This repository is separate from all Chess projects.
+Offline-playable Royal Ludo Arena using the existing approved walnut, burgundy, antique gold, and cream source art. Zero runtime dependencies for the app. Browser storage is demo state, not secure/authoritative account data.
 
-## Run the interactive frontend
-
-The current preview is plain HTML/CSS/JavaScript with no runtime dependencies. From this repository:
+## Quick Start
 
 ```sh
 python3 -m http.server 4173 --directory public
-# open http://localhost:4173
+# Open http://localhost:4173
 ```
 
-Use the five game cards on **Home** to navigate to **Play Online**, **Team Battle**, **Play With Friends**, **Play vs Computer**, and **Pass & Play**. Back, selection states, and the six-digit friends room-code input work. Actual gameplay, authentication, real online counts, matchmaking, payments, and AAB generation are **not implemented**; entry points that need these services are deliberately disabled.
-
-### Design constraints
-
-The six user-approved mobile designs are the sole visual baseline: walnut brown background, burgundy banners, gold detailing, cream lettering and dimensional Ludo artwork. Existing source-art screenshots are displayed as WebP with semantic transparent buttons overlaying real tap regions. This is a **visual-fidelity scaffold**, not a finished responsive component system. Affected text and checks remain embedded in images and may stretch on unusual phone proportions; independent HTML/CSS states and mobile-device sign-off are release blockers.
-
-### Structure
-
-- `public/index.html` and `public/styles.css`: web preview shell
-- `public/js/app.js`: screen navigation, choices, selected-state feedback, and input validation
-- `public/assets/screens`: six WebP screen images, exported from locked user designs
-- `public/assets/ui`: five isolated home navigation-card images
-- `docs/FRONTEND_STATUS.md`: completed and blocked features
-- `tests/ui.test.mjs`: static source and assets regression checks
-
-### Android / Play Store
-
-Do not use Kotlin for this project. Later, when the hosted PWA and gameplay are ready, package its verified HTTPS origin into a Java-based Trusted Web Activity/AAB. A signed AAB cannot be generated without a package ID, signing keys, asset links, Android build toolchain and actual QA. See `docs/ANDROID_JAVA_AAB.md`.
-
-## Validate
+Run automated tests:
 
 ```sh
 npm test
 ```
 
-No claim of production readiness or live infrastructure is made by this frontend milestone.
+## What Was Upgraded in v1.0.0
+
+- **Complete 15×15 Ludo Engine (`public/js/ludo-engine.js`)**: Authentic 52-cell outer loop, 4 colored home columns, 8 Star safe zones, exact-roll home entry, token stacking, captures with bonus turns, and the 3-consecutive-6s forfeit rule.
+- **Seven Rule Variants (Offline)**: Classic, Quick (2-pawn win + pre-deployed pawn), Rush Blitz (3-minute timed points mode), One Kill Win (sudden death), Team Battle / Team Up (2v2 partners), Popular (+2 Power Rerolls), and Mask Mode.
+- **4-Tier Tactical AI (`public/js/ludo-ai.js`)**: Easy, Medium, Hard, and Expert AI with threat detection, safe-zone tactics, capture hunting, and Team 2v2 partner awareness.
+- **Interactive Luxury Arena (`public/js/game-view.js`, `public/game.css`)**: Glossy 3D SVG pawns with step-by-step hop animation, 3D tumbling dice, active turn countdown ring with auto-play timeout, capture bursts, confetti celebrations, quick emotes, 1x/2x speed toggle, Spacebar roll shortcut, and auto-save/resume.
+- **All 5 Entry Modes + Tournament**:
+  - Play vs Computer (2–4 players + Custom seat setup)
+  - Pass & Play (2–4 local players, color picker, Classic / Team Up / Quick)
+  - Play Online & Team Battle (animated matchmaking lobby + prize pot)
+  - Play With Friends (6-digit Private Room generator + BroadcastChannel live multi-tab local sync)
+  - 2-Round Knockout Royal Tournament (Semi-Final + Grand Final)
+- **Procedural Web Audio SFX & Haptics (`public/js/sound.js`)**: Dice rattle, ascending pawn hops, capture impact, safe-zone sparkle, victory fanfare, coin clinks, and vibration support.
+- **Local Demo Economy & Progression (`public/js/state.js`, `public/js/expansion.js`)**: Persistent Coins, Diamonds, Level/XP, Career Stats, 7-Day Daily Rewards, Interactive Lucky Spin Wheel, Live Missions, Unlockable Board Themes & Dice Skins (Inventory), Leaderboard, Claimable Inbox, Hourly Free Chest, and Settings.
 
 
-## Extended UI v0.2.0 (draft)
+## Release / security boundaries
 
-Approved images: Events, Profile, Store, Store compact, Daily Goals, and Send Gift in `public/assets/screens/*.jpg`.
-
-`public/js/expansion.js` adds semantic hit areas for new screen navigation, daily-goal actions, gift/store purchase previews, and a local-only profile editor. The coin/diamond price, level, player profile, and rewards shown in concept art are **illustrative only**. Authentication, purchases, claims, multiplayer, AI, server state, and AAB are not live. The new UI still uses baked bitmap art and must undergo real-device/mobile visual QA and component extraction before production. See `docs/EXPANSION_SCOPE.md`.
+- **Play Online and Team Battle are offline simulations with bots.** No real remote matchmaking, authenticated accounts, cross-device friend rooms, or global leaderboard is provided. Private rooms use BroadcastChannel within same-origin tabs only.
+- **Coins, diamonds, missions, daily streaks and purchases are browser-local demo values.** They can be modified by the user and cannot be used for real-money, fraud-resistant rewards, tournaments or balances. Google Play Billing is not integrated.
+- Existing six concept-screen assets are preserved. The new game board is generated SVG and CSS, not a native GLB scene; gameplay appearance still requires owner acceptance.
+- Frontend runs in web browsers. Android AAB, Java TWA signing, Digital Asset Links, offline-device tests and Play Console compliance are separate release gates.
+- Untrusted displayed names are HTML-escaped; saved match shape is validated before restore. Browser storage remains untrusted.
