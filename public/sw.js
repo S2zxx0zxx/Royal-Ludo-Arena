@@ -1,4 +1,4 @@
-const CACHE = 'royal-ludo-arena-v2.0.0';
+const CACHE = 'royal-ludo-arena-v3.0.1';
 const BASE = [
   './',
   './index.html',
@@ -14,13 +14,15 @@ const BASE = [
   './js/app.js',
   './js/expansion.js',
   './assets/icons/icon.svg',
-  './assets/screens/home.webp',
   './assets/game/board-royal-walnut.webp',
   './assets/game/pawn-red.png',
   './assets/game/pawn-green.png',
   './assets/game/pawn-blue.png',
   './assets/game/pawn-yellow.png',
   './assets/game/crown-medallion.png',
+  './assets/game/avatar-hero.webp',
+  './assets/game/hero-ludo-3d.webp',
+  './assets/game/bot-mascot.webp',
   './manifest.webmanifest'
 ];
 

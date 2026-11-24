@@ -1,20 +1,8 @@
-// Royal Ludo Arena UI v1.0.0 — Full Playable Game Integration + Original Approved Artwork
-const SCREEN_DATA = {
-  home: './assets/screens/home.webp',
-  online: './assets/screens/online.webp',
-  team: './assets/screens/team.webp',
-  friends: './assets/screens/friends.webp',
-  computer: './assets/screens/computer.webp',
-  pass: './assets/screens/pass.webp'
-};
-const CARD_DATA = {
-  home_online: './assets/ui/home_online.webp',
-  home_team: './assets/ui/home_team.webp',
-  home_friends: './assets/ui/home_friends.webp',
-  home_computer: './assets/ui/home_computer.webp',
-  home_pass: './assets/ui/home_pass.webp'
-};
-const FRAME = { width: 921, height: 1536 };
+/**
+ * Royal Ludo Arena V3.0.0 — 100% Native 3D Componentized Game UI Router
+ * Zero baked screenshots. Zero stuck checkmarks. Zero overlapping HUD pills.
+ * Renders real live Home, Online, Team Battle, Friends, Computer & Pass-and-Play screens.
+ */
 const SCREENS = {
   home: 'Home',
   online: 'Play Online',
@@ -24,106 +12,393 @@ const SCREENS = {
   pass: 'Pass & Play'
 };
 
-// Exact source-image pixel hotspots measured from the six 921 x 1536 concept screens.
-const HOTSPOTS = {
-  home: [
-    { id: 'home-online', label: 'Play Online', rect: [37, 687, 278, 207], action: 'navigate', to: 'online', art: 'home_online' },
-    { id: 'home-team', label: 'Team Battle', rect: [324, 686, 274, 209], action: 'navigate', to: 'team', art: 'home_team' },
-    { id: 'home-friends', label: 'Play With Friends', rect: [608, 686, 278, 209], action: 'navigate', to: 'friends', art: 'home_friends' },
-    { id: 'home-computer', label: 'Play vs Computer', rect: [110, 938, 343, 181], action: 'navigate', to: 'computer', art: 'home_computer' },
-    { id: 'home-pass', label: 'Pass and Play', rect: [474, 939, 338, 181], action: 'navigate', to: 'pass', art: 'home_pass' }
-  ],
-  online: [
-    { id: 'online-back', label: 'Back to Home', rect: [25, 139, 100, 84], action: 'back' },
-    { id: 'online-classic', label: 'Classic rules', rect: [278, 601, 457, 106], action: 'select', group: 'ruleMode', value: 'classic' },
-    { id: 'online-one', label: 'One Kill Win rules', rect: [278, 743, 457, 106], action: 'select', group: 'ruleMode', value: 'oneKillWin' },
-    { id: 'online-quick', label: 'Quick rules', rect: [278, 885, 457, 107], action: 'select', group: 'ruleMode', value: 'quick' },
-    { id: 'online-popular', label: 'Popular rules', rect: [278, 1027, 457, 108], action: 'select', group: 'ruleMode', value: 'popular' },
-    { id: 'online-mask', label: 'Mask rules', rect: [278, 1168, 457, 107], action: 'select', group: 'ruleMode', value: 'mask' },
-    { id: 'online-next', label: 'Find Match', rect: [252, 1351, 417, 123], action: 'start' }
-  ],
-  team: [
-    { id: 'team-back', label: 'Back to Home', rect: [26, 138, 100, 85], action: 'back' },
-    { id: 'team-four', label: 'Four online players', rect: [91, 673, 361, 255], action: 'select', group: 'teamComposition', value: '4Online' },
-    { id: 'team-friends', label: 'Two friends and two online players', rect: [480, 672, 358, 256], action: 'select', group: 'teamComposition', value: '2Friends2Online' },
-    { id: 'team-classic', label: 'Classic game', rect: [74, 1042, 383, 111], action: 'select', group: 'ruleMode', value: 'classic' },
-    { id: 'team-quick', label: 'Quick game', rect: [479, 1042, 372, 111], action: 'select', group: 'ruleMode', value: 'quick' },
-    { id: 'team-next', label: 'Start Team Battle', rect: [248, 1350, 430, 128], action: 'start' }
-  ],
-  friends: [
-    { id: 'friends-back', label: 'Back to Home', rect: [26, 137, 98, 88], action: 'back' },
-    { id: 'friends-create', label: 'Create private room', rect: [38, 641, 421, 252], action: 'select', group: 'roomAction', value: 'create' },
-    { id: 'friends-join', label: 'Join private room', rect: [465, 640, 424, 254], action: 'select', group: 'roomAction', value: 'join' },
-    { id: 'friends-classic', label: 'Classic game', rect: [105, 1097, 356, 103], action: 'select', group: 'ruleMode', value: 'classic' },
-    { id: 'friends-quick', label: 'Quick game', rect: [477, 1097, 359, 103], action: 'select', group: 'ruleMode', value: 'quick' },
-    { id: 'friends-start', label: 'Open Private Room', rect: [202, 1354, 523, 146], action: 'start' }
-  ],
-  computer: [
-    { id: 'computer-back', label: 'Back to Home', rect: [26, 138, 100, 90], action: 'back' },
-    { id: 'computer-classic', label: 'Classic game', rect: [72, 697, 397, 122], action: 'select', group: 'ruleMode', value: 'classic' },
-    { id: 'computer-rush', label: 'Rush Mode', rect: [478, 697, 403, 122], action: 'select', group: 'ruleMode', value: 'rush' },
-    { id: 'computer-easy', label: 'Easy difficulty', rect: [70, 909, 195, 184], action: 'select', group: 'difficulty', value: 'easy' },
-    { id: 'computer-medium', label: 'Medium difficulty', rect: [266, 909, 206, 184], action: 'select', group: 'difficulty', value: 'medium' },
-    { id: 'computer-hard', label: 'Hard difficulty', rect: [472, 910, 204, 184], action: 'select', group: 'difficulty', value: 'hard' },
-    { id: 'computer-expert', label: 'Expert difficulty', rect: [679, 909, 202, 184], action: 'select', group: 'difficulty', value: 'expert' },
-    { id: 'computer-two', label: 'Two player game', rect: [68, 1200, 205, 130], action: 'select', group: 'playerCount', value: '2' },
-    { id: 'computer-three', label: 'Three player game', rect: [274, 1200, 202, 130], action: 'select', group: 'playerCount', value: '3' },
-    { id: 'computer-four', label: 'Four player game', rect: [483, 1200, 199, 130], action: 'select', group: 'playerCount', value: '4' },
-    { id: 'computer-custom', label: 'Custom players setup', rect: [683, 1200, 201, 130], action: 'custom' },
-    { id: 'computer-start', label: 'Start Game vs Computer', rect: [207, 1360, 524, 140], action: 'start' }
-  ],
-  pass: [
-    { id: 'pass-back', label: 'Back to Home', rect: [26, 138, 100, 90], action: 'back' },
-    { id: 'pass-two', label: 'Two local players', rect: [99, 677, 247, 123], action: 'select', group: 'playerCount', value: '2' },
-    { id: 'pass-three', label: 'Three local players', rect: [365, 677, 239, 123], action: 'select', group: 'playerCount', value: '3' },
-    { id: 'pass-four', label: 'Four local players', rect: [608, 677, 251, 123], action: 'select', group: 'playerCount', value: '4' },
-    { id: 'pass-blue', label: 'Blue pawn token', rect: [189, 883, 122, 124], action: 'select', group: 'tokenColor', value: 'blue' },
-    { id: 'pass-red', label: 'Red pawn token', rect: [336, 878, 131, 134], action: 'select', group: 'tokenColor', value: 'red' },
-    { id: 'pass-green', label: 'Green pawn token', rect: [488, 883, 138, 129], action: 'select', group: 'tokenColor', value: 'green' },
-    { id: 'pass-yellow', label: 'Yellow pawn token', rect: [645, 883, 146, 129], action: 'select', group: 'tokenColor', value: 'yellow' },
-    { id: 'pass-classic', label: 'Classic rules', rect: [77, 1071, 273, 137], action: 'select', group: 'ruleMode', value: 'classic' },
-    { id: 'pass-teamup', label: 'Team Up rules (four players only)', rect: [355, 1071, 264, 137], action: 'select', group: 'ruleMode', value: 'teamUp' },
-    { id: 'pass-quick', label: 'Quick rules', rect: [619, 1071, 273, 137], action: 'select', group: 'ruleMode', value: 'quick' },
-    { id: 'pass-start', label: 'Start Pass and Play', rect: [202, 1357, 548, 146], action: 'start' }
-  ]
-};
-
 const DEFAULTS = {
-  home: { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
-  online: { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
-  team: { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
-  friends: { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
+  home:     { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
+  online:   { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
+  team:     { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
+  friends:  { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' },
   computer: { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '2', tokenColor: 'blue' },
-  pass: { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' }
+  pass:     { ruleMode: 'classic', teamComposition: '4Online', roomAction: 'create', difficulty: 'medium', playerCount: '4', tokenColor: 'blue' }
 };
-
-function validChoice(screen, group, value) {
-  return HOTSPOTS[screen].some(h => h.action === 'select' && h.group === group && h.value === value);
-}
 
 const app = document.getElementById('app');
 if (!app) throw new Error('Missing app element');
 const root = app;
-const state = { screen: 'home', settings: structuredClone(DEFAULTS), roomCode: '', touched: new Set() };
-const allowedScreens = new Set(Object.keys(SCREENS));
-const extendedRoutes = new Set(['events', 'profile', 'store', 'store-compact', 'daily-goals', 'send-gift']);
+
+const state = {
+  screen: 'home',
+  settings: structuredClone(DEFAULTS),
+  roomCode: ''
+};
+
+const coreScreens = new Set(Object.keys(SCREENS));
+const extendedRoutes = new Set(['events', 'profile', 'store', 'store-compact', 'daily-goals', 'send-gift', 'club', 'inventory', 'social', 'more']);
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
 
 function fromHash() {
   const id = window.location.hash.slice(1).split('?')[0];
   if (id === 'play') return 'play';
   if (extendedRoutes.has(id)) return id;
-  return allowedScreens.has(id) ? id : 'home';
-}
-
-function rectStyle(hit) {
-  const [x, y, w, h] = hit.rect;
-  return `left:${x / FRAME.width * 100}%;top:${y / FRAME.height * 100}%;width:${w / FRAME.width * 100}%;height:${h / FRAME.height * 100}%;`;
+  return coreScreens.has(id) ? id : 'home';
 }
 
 function go(screen) {
   window.RLASound?.click();
-  if (screen === state.screen && window.location.hash.slice(1) === screen) return;
-  window.location.hash = screen;
+  if (window.location.hash.slice(1) === screen) draw();
+  else window.location.hash = screen;
+}
+
+/** Shared Persistent Top Game HUD + Bottom Nav Shell (used by app.js & expansion.js) */
+function renderGameShell(activeNav, mainHtml) {
+  const s = window.RLAState ? window.RLAState.get() : {
+    profile: { name: 'Player', avatar: '👑' },
+    currency: { coins: 2250, diamonds: 50 },
+    progression: { level: 1 },
+    inbox: [],
+    missions: []
+  };
+  const online = Boolean(window.RLAClient?.isOnline());
+  const unread = (s.inbox || []).filter(m => !m.claimed).length;
+  const readyMissions = (s.missions || []).filter(m => !m.claimed && m.progress >= m.target).length;
+  const avatarInner = (s.profile.avatar === '👑' || !s.profile.avatar)
+    ? `<img src="./assets/game/avatar-hero.webp" alt="Avatar" draggable="false">`
+    : `<span class="v3-avatar-emoji">${esc(s.profile.avatar)}</span>`;
+
+  const navItems = [
+    { id: 'home', icon: '🏠', label: 'HOME' },
+    { id: 'events', icon: '📅', label: 'EVENTS', badge: window.RLAState?.canClaimDailyReward() ? '!' : '' },
+    { id: 'club', icon: '🛡️', label: 'CLUB' },
+    { id: 'inventory', icon: '🎒', label: 'INVENTORY', badge: readyMissions ? String(readyMissions) : '' },
+    { id: 'social', icon: '💬', label: 'SOCIAL' },
+    { id: 'more', icon: '⚙️', label: 'MORE' }
+  ];
+
+  return `
+    <div class="v3-viewport">
+      <div class="v3-shell">
+        <header class="v3-hud" aria-label="Player status bar">
+          <div class="v3-hud-left">
+            <button type="button" class="v3-avatar-btn" data-nav="profile" aria-label="Open profile">
+              ${avatarInner}
+              <span class="v3-online-dot ${online ? '' : 'offline'}" title="${online ? 'Live Server Connected' : 'Local Practice Mode'}"></span>
+              <span class="v3-lvl-chip">Lv.${s.progression.level}</span>
+            </button>
+            <button type="button" class="v3-hud-icon" data-open="settings" aria-label="Settings">⚙️</button>
+            <button type="button" class="v3-hud-icon" data-open="inbox" aria-label="Messages">
+              ✉️${unread ? `<span class="v3-badge-dot">${unread}</span>` : ''}
+            </button>
+          </div>
+          <div class="v3-hud-right">
+            <button type="button" class="v3-currency-pill" data-nav="store" aria-label="Diamonds store">
+              <span>💎</span><span>${s.currency.diamonds.toLocaleString()}</span><span class="v3-currency-plus">+</span>
+            </button>
+            <button type="button" class="v3-currency-pill" data-nav="store" aria-label="Coins store">
+              <span>🪙</span><span>${s.currency.coins.toLocaleString()}</span><span class="v3-currency-plus">+</span>
+            </button>
+            <button type="button" class="v3-hud-icon" data-nav="store" aria-label="Store">🛒</button>
+          </div>
+        </header>
+
+        <section class="v3-main" aria-label="${esc(SCREENS[state.screen] || activeNav)} screen">
+          ${mainHtml}
+        </section>
+
+        <nav class="v3-bottom-dock" aria-label="Primary navigation">
+          ${navItems.map(n => `
+            <button type="button" class="v3-nav-tab ${activeNav === n.id ? 'active' : ''}" data-nav="${n.id}" aria-label="${n.label}">
+              <span class="ico">${n.icon}</span>
+              <span>${n.label}</span>
+              ${n.badge ? `<span class="v3-badge-dot">${n.badge}</span>` : ''}
+            </button>
+          `).join('')}
+        </nav>
+        <div class="sr-only" id="screen-announcer" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  `;
+}
+
+function bindShellEvents(container) {
+  container.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', () => go(el.dataset.nav));
+  });
+  container.querySelectorAll('[data-open]').forEach(el => {
+    el.addEventListener('click', () => {
+      window.RLASound?.click();
+      window.RLA?.openFeature(el.dataset.open);
+    });
+  });
+}
+
+function renderHomeBody() {
+  const hasSaved = Boolean(window.RLAState?.loadActiveMatch());
+  const dailyReady = Boolean(window.RLAState?.canClaimDailyReward());
+  const freeSpinReady = Boolean(window.RLAState?.canFreeSpin());
+  const readyMissions = (window.RLAState?.get().missions || []).filter(m => !m.claimed && m.progress >= m.target).length;
+  const isLive = Boolean(window.RLAClient?.isOnline());
+
+  return `
+    <div class="v3-home-hero-grid">
+      <div class="v3-rail">
+        <button type="button" class="v3-rail-btn promo" data-nav="store" aria-label="Starter Pack">
+          <span class="v3-rail-ico">🎁</span><span class="v3-rail-lbl">Starter Pack</span>
+        </button>
+        <button type="button" class="v3-rail-btn" data-nav="events" aria-label="Events">
+          <span class="v3-rail-ico">📅</span><span class="v3-rail-lbl">Events</span>
+        </button>
+        <button type="button" class="v3-rail-btn" data-open="free-chest" aria-label="Free Bonus Chest">
+          <span class="v3-rail-ico">📺</span><span class="v3-rail-lbl">Bonus Chest</span>
+        </button>
+      </div>
+
+      <div class="v3-hero-center">
+        <div class="v3-logo-crest">
+          <div class="v3-logo-crown">👑</div>
+          <div class="v3-logo-royal">ROYAL</div>
+          <div class="v3-logo-ludo">LUDO</div>
+        </div>
+        <div class="v3-hero-art-wrap">
+          <img src="./assets/game/hero-ludo-3d.webp" alt="Royal Ludo 3D Board" draggable="false">
+        </div>
+      </div>
+
+      <div class="v3-rail">
+        <button type="button" class="v3-rail-btn" data-open="vip" aria-label="VIP">
+          <span class="v3-rail-ico">👑</span><span class="v3-rail-lbl">VIP</span>
+        </button>
+        <button type="button" class="v3-rail-btn" data-open="daily-reward" aria-label="Daily Reward">
+          ${dailyReady ? '<span class="v3-badge-dot">!</span>' : ''}
+          <span class="v3-rail-ico">🗓️</span><span class="v3-rail-lbl">Daily Reward</span>
+        </button>
+        <button type="button" class="v3-rail-btn" data-nav="daily-goals" aria-label="Missions">
+          ${readyMissions ? `<span class="v3-badge-dot">${readyMissions}</span>` : ''}
+          <span class="v3-rail-ico">🎯</span><span class="v3-rail-lbl">Missions</span>
+        </button>
+        <button type="button" class="v3-rail-btn" data-open="leaderboard" aria-label="Leaderboard">
+          <span class="v3-rail-ico">🏆</span><span class="v3-rail-lbl">Ranks</span>
+        </button>
+      </div>
+    </div>
+
+    ${hasSaved ? `<button type="button" class="v3-resume-bar" id="v3-resume-btn">▶ Resume Saved Match</button>` : ''}
+
+    <div class="v3-modes-top">
+      <button type="button" class="v3-mode-card online" data-nav="online" data-hit-id="home-online" aria-label="Play Online">
+        <span class="v3-mode-ico">🌐</span>
+        <span class="v3-mode-plaque">PLAY<br>ONLINE</span>
+        <span class="v3-mode-sub">${isLive ? '🟢 Live' : '⚡ Instant'}</span>
+      </button>
+      <button type="button" class="v3-mode-card team" data-nav="team" data-hit-id="home-team" aria-label="Team Battle">
+        <span class="v3-mode-ico">👥</span>
+        <span class="v3-mode-plaque">TEAM<br>BATTLE</span>
+        <span class="v3-mode-sub">🤝 2v2 Assist</span>
+      </button>
+      <button type="button" class="v3-mode-card friends" data-nav="friends" data-hit-id="home-friends" aria-label="Play With Friends">
+        <span class="v3-mode-ico">💖</span>
+        <span class="v3-mode-plaque">PLAY WITH<br>FRIENDS</span>
+        <span class="v3-mode-sub">🔑 6-Digit Room</span>
+      </button>
+    </div>
+
+    <div class="v3-modes-bottom">
+      <button type="button" class="v3-mode-card computer" data-nav="computer" data-hit-id="home-computer" aria-label="Play vs Computer">
+        <span class="v3-mode-ico">🤖</span>
+        <span class="v3-mode-plaque">PLAY VS COMPUTER</span>
+        <span class="v3-mode-sub">4 AI Tiers · Classic & Rush</span>
+      </button>
+      <button type="button" class="v3-mode-card pass" data-nav="pass" data-hit-id="home-pass" aria-label="Pass and Play">
+        <span class="v3-mode-ico">🎲</span>
+        <span class="v3-mode-plaque">PASS & PLAY</span>
+        <span class="v3-mode-sub">2–4 Local · Team Up</span>
+      </button>
+    </div>
+
+    <div class="v3-home-footer-strip">
+      <button type="button" class="v3-rail-btn" data-open="lucky-spin" aria-label="Lucky Spin">
+        ${freeSpinReady ? '<span class="v3-badge-dot">1</span>' : ''}
+        <span class="v3-rail-ico">🎡</span><span class="v3-rail-lbl">Lucky Spin</span>
+      </button>
+      <button type="button" class="v3-tourney-banner" data-open="tournament" aria-label="Royal Tournaments">
+        <strong style="font-size:14px;color:#ffe680">🏆 ROYAL TOURNAMENTS</strong>
+        <span style="font-size:10.5px;color:#fff4d6">Season 28 · 2-Round Knockout · 5,000 🪙</span>
+      </button>
+      <button type="button" class="v3-rail-btn" data-open="free-chest" aria-label="Free Coins">
+        <span class="v3-rail-ico">💰</span><span class="v3-rail-lbl">Free Coins</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderOnlineBody() {
+  const cfg = state.settings.online;
+  const modes = [
+    ['classic', '👑 Classic Rules', 'Traditional 4-pawn race to the Royal Crown'],
+    ['oneKillWin', '⚔️ One Kill Win', 'First capture or first pawn Home wins instantly'],
+    ['quick', '⚡ Quick Mode', '1 pawn starts out · First to get 2 pawns Home wins'],
+    ['popular', '🎲 Popular (+Reroll)', 'Classic Ludo with 2 Power Rerolls per player'],
+    ['mask', '🎭 Mask Mode', 'Mystery masked rivals revealed on victory podium']
+  ];
+  return `
+    <div class="v3-screen-head">
+      <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back to Home">←</button>
+      <div class="v3-ribbon"><h1 class="v3-ribbon-title">🌐 Play Online</h1></div>
+      <button type="button" class="v3-round-btn" data-open="help" aria-label="Rules help">?</button>
+    </div>
+    <div class="v3-panel">
+      <span class="v3-section-pill">Select Rule Mode</span>
+      ${modes.map(([val, title, desc]) => `
+        <button type="button" class="v3-choice v3-choice-row" data-group="ruleMode" data-value="${val}" aria-pressed="${cfg.ruleMode === val}">
+          <div><div>${title}</div><div class="v3-choice-desc">${desc}</div></div>
+        </button>
+      `).join('')}
+    </div>
+    <button type="button" class="v3-cta-btn green" id="v3-start-btn" data-hit-id="online-next">Find Live Match ▶</button>
+  `;
+}
+
+function renderTeamBody() {
+  const cfg = state.settings.team;
+  return `
+    <div class="v3-screen-head">
+      <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back to Home">←</button>
+      <div class="v3-ribbon"><h1 class="v3-ribbon-title">👥 Team Battle 2v2</h1></div>
+      <button type="button" class="v3-round-btn" data-open="help" aria-label="Rules help">?</button>
+    </div>
+    <div class="v3-panel">
+      <span class="v3-section-pill">Team Setup</span>
+      <div class="v3-grid-2">
+        <button type="button" class="v3-choice" data-group="teamComposition" data-value="4Online" aria-pressed="${cfg.teamComposition === '4Online'}">
+          <span style="font-size:28px">🌐</span>
+          <span>4 Online Players</span>
+          <span class="v3-choice-desc">Auto-pair 2v2</span>
+        </button>
+        <button type="button" class="v3-choice" data-group="teamComposition" data-value="2Friends2Online" aria-pressed="${cfg.teamComposition === '2Friends2Online'}">
+          <span style="font-size:28px">🤝</span>
+          <span>2 Friends + 2 Online</span>
+          <span class="v3-choice-desc">6-Digit Duo Party</span>
+        </button>
+      </div>
+      <span class="v3-section-pill">Game Speed</span>
+      <div class="v3-grid-2">
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="classic" aria-pressed="${cfg.ruleMode === 'classic'}">👑 Classic 2v2</button>
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="quick" aria-pressed="${cfg.ruleMode === 'quick'}">⚡ Quick 2v2</button>
+      </div>
+      <p style="margin:2px 0 0;font-size:11px;color:#f3dba4;text-align:center">Partner Finish Assist enabled: finish your 4 pawns to roll & move your partner's pawns!</p>
+    </div>
+    <button type="button" class="v3-cta-btn" id="v3-start-btn" data-hit-id="team-next">Start Team Battle ▶</button>
+  `;
+}
+
+function renderFriendsBody() {
+  const cfg = state.settings.friends;
+  return `
+    <div class="v3-screen-head">
+      <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back to Home">←</button>
+      <div class="v3-ribbon"><h1 class="v3-ribbon-title">💖 Play With Friends</h1></div>
+      <button type="button" class="v3-round-btn" data-open="help" aria-label="Rules help">?</button>
+    </div>
+    <div class="v3-panel">
+      <span class="v3-section-pill">Private Room</span>
+      <div class="v3-grid-2">
+        <button type="button" class="v3-choice" data-group="roomAction" data-value="create" aria-pressed="${cfg.roomAction === 'create'}">
+          <span style="font-size:26px">🏰</span>
+          <span>Create Room</span>
+          <span class="v3-choice-desc">Get 6-digit code</span>
+        </button>
+        <button type="button" class="v3-choice" data-group="roomAction" data-value="join" aria-pressed="${cfg.roomAction === 'join'}">
+          <span style="font-size:26px">🔑</span>
+          <span>Join Room</span>
+          <span class="v3-choice-desc">Enter friend's code</span>
+        </button>
+      </div>
+      <input id="room-code" class="v3-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="ENTER 6 DIGIT CODE" value="${esc(state.roomCode)}" aria-label="Six digit room code">
+      <span class="v3-section-pill">Rules</span>
+      <div class="v3-grid-2">
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="classic" aria-pressed="${cfg.ruleMode === 'classic'}">👑 Classic</button>
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="quick" aria-pressed="${cfg.ruleMode === 'quick'}">⚡ Quick</button>
+      </div>
+    </div>
+    <button type="button" class="v3-cta-btn gold" id="v3-start-btn" data-hit-id="friends-start">${cfg.roomAction === 'join' ? 'Join Private Room ▶' : 'Create Private Room ▶'}</button>
+  `;
+}
+
+function renderComputerBody() {
+  const cfg = state.settings.computer;
+  return `
+    <div class="v3-screen-head">
+      <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back to Home">←</button>
+      <div class="v3-ribbon"><h1 class="v3-ribbon-title">🤖 Play vs Computer</h1></div>
+      <button type="button" class="v3-round-btn" data-open="help" aria-label="Rules help">?</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+      <img src="./assets/game/bot-mascot.webp" alt="AI Bot Mascot" style="width:74px;height:74px;border-radius:16px;border:2px solid #f4bd3b;box-shadow:0 6px 14px rgba(0,0,0,0.55)" draggable="false">
+      <div style="font-size:12px;color:#f5dfb0;line-height:1.35">
+        <strong style="color:#ffe680;font-size:14px">Tactical AI Arena</strong><br>
+        4 intelligence tiers with threat analysis, safe-zone tactics & capture hunting.
+      </div>
+    </div>
+    <div class="v3-panel">
+      <span class="v3-section-pill">Game Mode</span>
+      <div class="v3-grid-2">
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="classic" aria-pressed="${cfg.ruleMode === 'classic'}">🎲 Classic</button>
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="rush" aria-pressed="${cfg.ruleMode === 'rush'}">⚡ Rush Blitz</button>
+      </div>
+      <span class="v3-section-pill">AI Difficulty</span>
+      <div class="v3-grid-4">
+        <button type="button" class="v3-choice" data-group="difficulty" data-value="easy" aria-pressed="${cfg.difficulty === 'easy'}">😊<span>Easy</span></button>
+        <button type="button" class="v3-choice" data-group="difficulty" data-value="medium" aria-pressed="${cfg.difficulty === 'medium'}">🤖<span>Medium</span></button>
+        <button type="button" class="v3-choice" data-group="difficulty" data-value="hard" aria-pressed="${cfg.difficulty === 'hard'}">😈<span>Hard</span></button>
+        <button type="button" class="v3-choice" data-group="difficulty" data-value="expert" aria-pressed="${cfg.difficulty === 'expert'}">👑<span>Expert</span></button>
+      </div>
+      <span class="v3-section-pill">Players</span>
+      <div class="v3-grid-4">
+        <button type="button" class="v3-choice" data-hit-id="computer-two" data-group="playerCount" data-value="2" aria-pressed="${cfg.playerCount === '2'}">2P</button>
+        <button type="button" class="v3-choice" data-hit-id="computer-three" data-group="playerCount" data-value="3" aria-pressed="${cfg.playerCount === '3'}">3P</button>
+        <button type="button" class="v3-choice" data-hit-id="computer-four" data-group="playerCount" data-value="4" aria-pressed="${cfg.playerCount === '4'}">4P</button>
+        <button type="button" class="v3-choice" id="v3-custom-btn" data-hit-id="computer-custom" aria-pressed="false">⚙️ Custom</button>
+      </div>
+    </div>
+    <button type="button" class="v3-cta-btn" id="v3-start-btn" data-hit-id="computer-start">Start Game ▶</button>
+  `;
+}
+
+function renderPassBody() {
+  const cfg = state.settings.pass;
+  const colors = ['blue', 'red', 'green', 'yellow'];
+  return `
+    <div class="v3-screen-head">
+      <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back to Home">←</button>
+      <div class="v3-ribbon"><h1 class="v3-ribbon-title">🎲 Pass & Play</h1></div>
+      <button type="button" class="v3-round-btn" data-open="help" aria-label="Rules help">?</button>
+    </div>
+    <div class="v3-panel">
+      <span class="v3-section-pill">Local Players</span>
+      <div class="v3-grid-3">
+        <button type="button" class="v3-choice" data-group="playerCount" data-value="2" aria-pressed="${cfg.playerCount === '2'}">2 Players</button>
+        <button type="button" class="v3-choice" data-group="playerCount" data-value="3" aria-pressed="${cfg.playerCount === '3'}">3 Players</button>
+        <button type="button" class="v3-choice" data-group="playerCount" data-value="4" aria-pressed="${cfg.playerCount === '4'}">4 Players</button>
+      </div>
+      <span class="v3-section-pill">Player 1 3D Pawn Color</span>
+      <div class="v3-grid-4">
+        ${colors.map(c => `
+          <button type="button" class="v3-choice" data-group="tokenColor" data-value="${c}" aria-pressed="${cfg.tokenColor === c}" aria-label="${c} pawn">
+            <img src="./assets/game/pawn-${c}.png" alt="${c}" style="width:36px;height:36px;object-fit:contain" draggable="false">
+            <span style="text-transform:capitalize;font-size:10px">${c}</span>
+          </button>
+        `).join('')}
+      </div>
+      <span class="v3-section-pill">Rule Mode</span>
+      <div class="v3-grid-3">
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="classic" aria-pressed="${cfg.ruleMode === 'classic'}">👑 Classic</button>
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="teamUp" aria-pressed="${cfg.ruleMode === 'teamUp'}">🤝 Team Up</button>
+        <button type="button" class="v3-choice" data-group="ruleMode" data-value="quick" aria-pressed="${cfg.ruleMode === 'quick'}">⚡ Quick</button>
+      </div>
+    </div>
+    <button type="button" class="v3-cta-btn green" id="v3-start-btn" data-hit-id="pass-start">Start Pass & Play ▶</button>
+  `;
 }
 
 function launchGame(screen) {
@@ -178,11 +453,7 @@ function launchGame(screen) {
   }
 
   if (screen === 'online') {
-    window.RLAGameView.openMatchmakingLobby({
-      mode: cfg.ruleMode || 'classic',
-      entryMode: 'online',
-      teamBattle: false
-    });
+    window.RLAGameView.openMatchmakingLobby({ mode: cfg.ruleMode || 'classic', entryMode: 'online', teamBattle: false });
     return;
   }
 
@@ -199,8 +470,7 @@ function launchGame(screen) {
   if (screen === 'friends') {
     if (cfg.roomAction === 'join' && state.roomCode.length !== 6) {
       window.RLAGameView.toast('Enter a valid 6-digit Room Code to join, or select Create Room!');
-      const input = document.getElementById('room-code');
-      input?.focus();
+      document.getElementById('room-code')?.focus();
       return;
     }
     window.RLAGameView.openPrivateRoomLobby({
@@ -211,37 +481,21 @@ function launchGame(screen) {
   }
 }
 
-function attachLiveHud(frame) {
-  if (!window.RLAState) return;
-  const s = window.RLAState.get();
-  const hud = document.createElement('div');
-  hud.className = 'rla-live-hud';
-  hud.innerHTML = `
-    <span class="rla-hud-pill" aria-label="Diamonds">💎 ${s.currency.diamonds.toLocaleString()}</span>
-    <span class="rla-hud-pill" aria-label="Coins">🪙 ${s.currency.coins.toLocaleString()}</span>
-  `;
-  frame.append(hud);
-
-  if (state.screen === 'home') {
-    const xp = window.RLAState.xpProgress();
-    const lvl = document.createElement('div');
-    lvl.className = 'rla-hud-level';
-    lvl.textContent = `★ Lv.${xp.level} · ${s.profile.name}`;
-    frame.append(lvl);
-
-    // Show Resume Match pill if an unfinished match exists
-    if (window.RLAState.loadActiveMatch()) {
-      const resumeBtn = document.createElement('button');
-      resumeBtn.type = 'button';
-      resumeBtn.className = 'rla-resume-banner';
-      resumeBtn.textContent = '▶ Resume Saved Match';
-      resumeBtn.addEventListener('click', () => {
-        window.RLASound?.select();
-        window.RLAGameView?.resumeSavedMatch();
-      });
-      frame.append(resumeBtn);
-    }
+function selectSetting(group, value) {
+  const screen = state.screen;
+  const settings = state.settings[screen];
+  if (screen === 'pass' && group === 'ruleMode' && value === 'teamUp' && settings.playerCount !== '4') {
+    const live = document.getElementById('screen-announcer');
+    if (live) live.textContent = 'Team Up needs exactly four players.';
+    window.RLAGameView?.toast('Team Up needs exactly four players.');
+    return;
   }
+  window.RLASound?.select();
+  settings[group] = value;
+  if (screen === 'pass' && group === 'playerCount' && value !== '4' && settings.ruleMode === 'teamUp') {
+    settings.ruleMode = 'classic';
+  }
+  draw();
 }
 
 function draw() {
@@ -249,9 +503,7 @@ function draw() {
   if (nextScreen === 'play') {
     state.screen = 'play';
     if (!window.RLAGameView?.isActive()) {
-      if (!window.RLAGameView?.resumeSavedMatch()) {
-        window.location.hash = 'home';
-      }
+      if (!window.RLAGameView?.resumeSavedMatch()) window.location.hash = 'home';
     }
     return;
   }
@@ -263,126 +515,43 @@ function draw() {
 
   window.RLAGameView?.destroy();
   state.screen = nextScreen;
-  document.title = SCREENS[state.screen] + ' | Royal Ludo Arena';
-  root.replaceChildren();
+  document.title = `${SCREENS[state.screen]} | Royal Ludo Arena`;
 
-  const shell = document.createElement('div');
-  shell.className = 'app-shell';
-  const frame = document.createElement('section');
-  frame.className = 'artboard';
-  frame.setAttribute('aria-label', SCREENS[state.screen] + ' screen');
+  let bodyHtml = '';
+  if (state.screen === 'home') bodyHtml = renderHomeBody();
+  else if (state.screen === 'online') bodyHtml = renderOnlineBody();
+  else if (state.screen === 'team') bodyHtml = renderTeamBody();
+  else if (state.screen === 'friends') bodyHtml = renderFriendsBody();
+  else if (state.screen === 'computer') bodyHtml = renderComputerBody();
+  else if (state.screen === 'pass') bodyHtml = renderPassBody();
 
-  const img = document.createElement('img');
-  img.className = 'screen-art';
-  img.src = SCREEN_DATA[state.screen];
-  img.alt = '';
-  img.decoding = 'sync';
-  img.draggable = false;
-  frame.append(img);
+  root.innerHTML = renderGameShell('home', bodyHtml);
+  bindShellEvents(root);
 
-  for (const hit of HOTSPOTS[state.screen]) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'hotspot';
-    button.style.cssText = rectStyle(hit);
-    button.dataset.hitId = hit.id;
-    button.setAttribute('aria-label', hit.label);
-
-    if (hit.art && hit.action === 'navigate') {
-      const visual = document.createElement('img');
-      visual.src = CARD_DATA[hit.art];
-      visual.alt = '';
-      visual.draggable = false;
-      button.append(visual);
-      button.classList.add('art-button');
-    }
-
-    if (hit.action === 'select') {
-      button.classList.add('choice');
-      const isSelected = Boolean(hit.group && hit.value && state.settings[state.screen][hit.group] === hit.value);
-      button.setAttribute('aria-pressed', String(isSelected));
-      if (isSelected && state.touched.has(`${state.screen}:${hit.group}`)) {
-        button.classList.add('modified');
-      }
-      button.setAttribute('role', 'button');
-      button.addEventListener('click', () => select(hit));
-    } else if (hit.action === 'navigate' && hit.to) {
-      const to = hit.to;
-      button.addEventListener('click', () => go(to));
-    } else if (hit.action === 'back') {
-      button.addEventListener('click', () => go('home'));
-    } else if (hit.action === 'start') {
-      button.addEventListener('click', () => launchGame(state.screen));
-    } else if (hit.action === 'custom') {
-      button.addEventListener('click', () => {
-        window.RLASound?.select();
-        const cfg = state.settings.computer;
-        window.RLAGameView?.openCustomComputerModal(cfg.ruleMode, cfg.difficulty);
-      });
-    }
-    frame.append(button);
-  }
-
-  if (state.screen === 'friends') {
-    const input = document.createElement('input');
-    input.id = 'room-code';
-    input.className = 'room-code';
-    input.type = 'text';
-    input.inputMode = 'numeric';
-    input.pattern = '[0-9]{6}';
-    input.placeholder = 'Enter 6 Digit Code';
-    input.autocomplete = 'off';
-    input.setAttribute('aria-label', 'Six digit room code');
-    input.value = state.roomCode;
-    input.addEventListener('input', () => {
-      const sanitized = input.value.replace(/[^0-9]/g, '').slice(0, 6);
-      input.value = sanitized;
+  root.querySelector('#v3-resume-btn')?.addEventListener('click', () => {
+    window.RLASound?.select();
+    window.RLAGameView?.resumeSavedMatch();
+  });
+  root.querySelector('#v3-start-btn')?.addEventListener('click', () => launchGame(state.screen));
+  root.querySelector('#v3-custom-btn')?.addEventListener('click', () => {
+    window.RLASound?.select();
+    const cfg = state.settings.computer;
+    window.RLAGameView?.openCustomComputerModal(cfg.ruleMode, cfg.difficulty);
+  });
+  root.querySelectorAll('[data-group][data-value]').forEach(btn => {
+    btn.addEventListener('click', () => selectSetting(btn.dataset.group, btn.dataset.value));
+  });
+  const roomInput = root.querySelector('#room-code');
+  if (roomInput) {
+    roomInput.addEventListener('input', () => {
+      const sanitized = roomInput.value.replace(/[^0-9]/g, '').slice(0, 6);
+      roomInput.value = sanitized;
       state.roomCode = sanitized;
     });
-    frame.append(input);
   }
-
-  attachLiveHud(frame);
-
-  const live = document.createElement('div');
-  live.className = 'sr-only';
-  live.id = 'screen-announcer';
-  live.setAttribute('role', 'status');
-  live.setAttribute('aria-live', 'polite');
-  frame.append(live);
-
-  shell.append(frame);
-  root.append(shell);
 }
 
-function select(hit) {
-  const screen = state.screen;
-  if (!hit.group || !hit.value || !validChoice(screen, hit.group, hit.value)) return;
-  const settings = state.settings[screen];
-
-  if (screen === 'pass' && hit.group === 'ruleMode' && hit.value === 'teamUp' && settings.playerCount !== '4') {
-    const live = document.getElementById('screen-announcer');
-    if (live) live.textContent = 'Team Up needs exactly four players.';
-    window.RLAGameView?.toast('Team Up requires 4 players — select 4 Players first!');
-    return;
-  }
-
-  window.RLASound?.select();
-  settings[hit.group] = hit.value;
-  state.touched.add(`${screen}:${hit.group}`);
-
-  if (screen === 'pass' && hit.group === 'playerCount' && hit.value !== '4' && settings.ruleMode === 'teamUp') {
-    settings.ruleMode = 'classic';
-  }
-
-  const focusId = hit.id;
-  draw();
-  const selected = root.querySelector(`[data-hit-id="${focusId}"]`);
-  selected?.focus({ preventScroll: true });
-  const status = document.getElementById('screen-announcer');
-  if (status) status.textContent = `${hit.label} selected`;
-}
-
+window.RLAShell = { renderGameShell, bindShellEvents, go, esc };
 window.addEventListener('hashchange', draw);
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && state.screen !== 'home' && state.screen !== 'play' && !document.getElementById('rla-dialog')) {
@@ -391,7 +560,7 @@ window.addEventListener('keydown', (event) => {
 });
 if (window.RLAState) {
   window.RLAState.subscribe(() => {
-    if (allowedScreens.has(state.screen)) draw();
+    if (coreScreens.has(state.screen)) draw();
   });
 }
 draw();

@@ -1,40 +1,34 @@
-# Royal Ludo Arena (v1.0.0 — Offline Playable Foundation)
+# Royal Ludo Arena V3.0.1 — review build
 
-Offline-playable Royal Ludo Arena using the existing approved walnut, burgundy, antique gold, and cream source art. Zero runtime dependencies for the app. Browser storage is demo state, not secure/authoritative account data.
+This source archive contains the user-supplied V3 native component frontend, with review fixes applied. It was compared with GitHub `main` commit `1edf959cf5efa22b7f7ac282aa9b96a5013985ba` (PR #4).
 
-## Quick Start
-
-```sh
-python3 -m http.server 4173 --directory public
-# Open http://localhost:4173
-```
-
-Run automated tests:
+## Start locally
 
 ```sh
 npm test
+npm start
+# Then open http://127.0.0.1:4173
 ```
 
-## What Was Upgraded in v1.0.0
+The Node server runs a **single-node development preview**. It is not a production-scale multiplayer service, and is not hosted by the Cloudflare Pages static preview. Without that server, local practice works. Actual payment fulfillment, Google Play Billing, entry fees and prize payouts are disabled.
 
-- **Complete 15×15 Ludo Engine (`public/js/ludo-engine.js`)**: Authentic 52-cell outer loop, 4 colored home columns, 8 Star safe zones, exact-roll home entry, token stacking, captures with bonus turns, and the 3-consecutive-6s forfeit rule.
-- **Seven Rule Variants (Offline)**: Classic, Quick (2-pawn win + pre-deployed pawn), Rush Blitz (3-minute timed points mode), One Kill Win (sudden death), Team Battle / Team Up (2v2 partners), Popular (+2 Power Rerolls), and Mask Mode.
-- **4-Tier Tactical AI (`public/js/ludo-ai.js`)**: Easy, Medium, Hard, and Expert AI with threat detection, safe-zone tactics, capture hunting, and Team 2v2 partner awareness.
-- **Interactive Luxury Arena (`public/js/game-view.js`, `public/game.css`)**: Glossy 3D SVG pawns with step-by-step hop animation, 3D tumbling dice, active turn countdown ring with auto-play timeout, capture bursts, confetti celebrations, quick emotes, 1x/2x speed toggle, Spacebar roll shortcut, and auto-save/resume.
-- **All 5 Entry Modes + Tournament**:
-  - Play vs Computer (2–4 players + Custom seat setup)
-  - Pass & Play (2–4 local players, color picker, Classic / Team Up / Quick)
-  - Play Online & Team Battle (animated matchmaking lobby + prize pot)
-  - Play With Friends (6-digit Private Room generator + BroadcastChannel live multi-tab local sync)
-  - 2-Round Knockout Royal Tournament (Semi-Final + Grand Final)
-- **Procedural Web Audio SFX & Haptics (`public/js/sound.js`)**: Dice rattle, ascending pawn hops, capture impact, safe-zone sparkle, victory fanfare, coin clinks, and vibration support.
-- **Local Demo Economy & Progression (`public/js/state.js`, `public/js/expansion.js`)**: Persistent Coins, Diamonds, Level/XP, Career Stats, 7-Day Daily Rewards, Interactive Lucky Spin Wheel, Live Missions, Unlockable Board Themes & Dice Skins (Inventory), Leaderboard, Claimable Inbox, Hourly Free Chest, and Settings.
+## V3 improvements over V2
 
+- Native clickable frontend screens for Home, Play Online, Team Battle, Play With Friends, Play vs Computer, Pass & Play, Profile, Events, Store, Inventory, Club, Social, More and Daily Goals.
+- New pre-rendered artwork: `hero-ludo-3d.webp`, `avatar-hero.webp`, `bot-mascot.webp` (these are **2D sprites**, not meshes).
+- Improved game-board visual styles, while retaining the existing v2 engine, AI, WebSocket server and V1/V2 asset library.
+- Screen accessibility: DOM controls and selection state rather than baked screenshot hit regions.
 
-## Release / security boundaries
+## Safety checks and limits
 
-- **Play Online and Team Battle are offline simulations with bots.** No real remote matchmaking, authenticated accounts, cross-device friend rooms, or global leaderboard is provided. Private rooms use BroadcastChannel within same-origin tabs only.
-- **Coins, diamonds, missions, daily streaks and purchases are browser-local demo values.** They can be modified by the user and cannot be used for real-money, fraud-resistant rewards, tournaments or balances. Google Play Billing is not integrated.
-- Existing six concept-screen assets are preserved. The new game board is generated SVG and CSS, not a native GLB scene; gameplay appearance still requires owner acceptance.
-- Frontend runs in web browsers. Android AAB, Java TWA signing, Digital Asset Links, offline-device tests and Play Console compliance are separate release gates.
-- Untrusted displayed names are HTML-escaped; saved match shape is validated before restore. Browser storage remains untrusted.
+- User names and text are escaped in generated HTML, and match snapshots are validated.
+- Server-active daily mission claims use the server endpoint and do not issue local currency.
+- Server-active profile edits require a confirmed success response.
+- Payments and currency minting via checkout remain disabled.
+- CSS backgrounds use flat colors and layered shadows, without gradients.
+- Previously approved V1/V2 source art files remain byte-identical, but **V3's new native layout is NOT pixel-identical to those screens**. Visual fidelity/physical Android acceptance is an explicit merge blocker, not claimed complete.
+- `npm test` currently covers unit, server, security and static compatibility checks; device-browser/system and live-Internet verification remain separate.
+
+## Android and release
+
+This is **not** a signed Java AAB and not a Play Store-ready release. For a Play Store app, prepare Java/TWA packaging, hosted HTTPS PWA, Android App Links, identity, game-data declarations, and full physical device QA. Do not treat these source files alone as production certification.
