@@ -107,7 +107,11 @@ export function createArenaServer(options = {}) {
         }
 
         if (pathname === '/api/leaderboard' && req.method === 'GET') {
-          return sendJSON(res, 200, { ok: true, leaderboard: db.getLeaderboard() });
+          const now = Date.now();
+          if (!server._lbCache || (now - server._lbCache.ts) > 5000) {
+            server._lbCache = { ts: now, data: db.getLeaderboard() };
+          }
+          return sendJSON(res, 200, { ok: true, leaderboard: server._lbCache.data, cached: true });
         }
 
         // All routes below require valid HMAC-signed Bearer token

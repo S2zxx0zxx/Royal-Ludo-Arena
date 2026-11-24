@@ -27,6 +27,8 @@
 
   function setStoredToken(t) {
     token = t || '';
+    RLAClient._lbCache = null;
+    RLAClient._lbInflight = null;
     try {
       if (t) global.localStorage?.setItem(TOKEN_KEY, t);
       else global.localStorage?.removeItem(TOKEN_KEY);
@@ -169,7 +171,18 @@
       return res;
     },
     async fetchLeaderboard() {
-      return api('/api/leaderboard', 'GET');
+      const now = Date.now();
+      if (this._lbCache && (now - this._lbCache.ts) < 5000) return this._lbCache.data;
+      if (this._lbInflight) return this._lbInflight;
+      this._lbInflight = api('/api/leaderboard', 'GET').then(res => {
+        this._lbInflight = null;
+        if (res && res.ok) this._lbCache = { ts: Date.now(), data: res };
+        return res;
+      }).catch(err => {
+        this._lbInflight = null;
+        throw err;
+      });
+      return this._lbInflight;
     },
     async verifyRazorpay(payload) {
       const res = await api('/api/payments/razorpay/verify', 'POST', payload);
@@ -190,9 +203,9 @@
     removeSeat: (seatIndex) => sendWS({ type: 'REMOVE_SEAT', seatIndex }),
     startRoom: () => sendWS({ type: 'START_ROOM' }),
     leaveRoom: () => sendWS({ type: 'LEAVE_ROOM' }),
-    queueOnline: (mode = 'classic', entryFee = 100) => sendWS({ type: 'QUEUE_ONLINE', mode, entryFee }),
-    queueTeamSolo: (mode = 'classic', entryFee = 100) => sendWS({ type: 'QUEUE_TEAM_SOLO', mode, entryFee }),
-    createTeamParty: (mode = 'classic', entryFee = 100) => sendWS({ type: 'CREATE_TEAM_PARTY', mode, entryFee }),
+    queueOnline: (mode = 'classic', entryFee = 0) => sendWS({ type: 'QUEUE_ONLINE', mode, entryFee }),
+    queueTeamSolo: (mode = 'classic', entryFee = 0) => sendWS({ type: 'QUEUE_TEAM_SOLO', mode, entryFee }),
+    createTeamParty: (mode = 'classic', entryFee = 0) => sendWS({ type: 'CREATE_TEAM_PARTY', mode, entryFee }),
     joinTeamParty: (code) => sendWS({ type: 'JOIN_TEAM_PARTY', code }),
     startTeamParty: (code) => sendWS({ type: 'START_TEAM_PARTY', code }),
     cancelQueue: () => sendWS({ type: 'CANCEL_QUEUE' }),
