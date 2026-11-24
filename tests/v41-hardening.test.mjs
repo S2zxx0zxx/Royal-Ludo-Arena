@@ -18,7 +18,7 @@ test('Lucky Spin validates authoritative server response and cleans up animation
   assert.match(src,/Local practice wallet only/);
 });
 test('Service worker cache version changes with V4 assets',()=>{
- assert.match(read('public/sw.js'),/royal-ludo-arena-v3.1.1-floating-sidebar/);
+ assert.match(read('public/sw.js'),/royal-ludo-arena-v3\.1\.2-floating-footer/);
 });
 
 test('offline pages never claim live game-server status',()=>{
