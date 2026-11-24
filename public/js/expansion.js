@@ -19,12 +19,12 @@ const RLA = (() => {
 
   const STORE_PACKS = {
     coins: [
-      { sku: 'royal_bundle', icon: '👑', name: 'Royal Coin Bundle', sub: '250,000 Coins + 50 💎', price: '₹480' },
-      { sku: 'coins_25k', icon: '🪙', name: '25,000 Coins', sub: 'Starter Pouch', price: '₹100' },
-      { sku: 'coins_100k', icon: '🪙', name: '100,000 Coins', sub: 'Noble Bag', price: '₹180' },
-      { sku: 'coins_500k', icon: '💰', name: '500,000 Coins', sub: 'Royal Chest', price: '₹480' },
-      { sku: 'coins_1m', icon: '💰', name: '1,000,000 Coins', sub: 'Maharaja Vault', price: '₹690' },
-      { sku: 'coins_5m', icon: '🏆', name: '5,000,000 Coins', sub: 'Imperial Treasury', price: '₹1,800' }
+      { sku: 'royal_bundle', art: 'royal_bundle', icon: '👑', name: 'Royal Coin Bundle', sub: '250,000 Coins + 50 💎', price: '₹480' },
+      { sku: 'coins_25k', art: 'coins_25k', icon: '🪙', name: '25,000 Coins', sub: 'Starter Pouch', price: '₹100' },
+      { sku: 'coins_100k', art: 'coins_100k', icon: '🪙', name: '100,000 Coins', sub: 'Noble Bag', price: '₹180' },
+      { sku: 'coins_500k', art: 'coins_500k', icon: '💰', name: '500,000 Coins', sub: 'Royal Chest', price: '₹480' },
+      { sku: 'coins_1m', art: 'coins_1m', icon: '💰', name: '1,000,000 Coins', sub: 'Maharaja Vault', price: '₹690' },
+      { sku: 'coins_5m', art: 'coins_5m', icon: '🏆', name: '5,000,000 Coins', sub: 'Imperial Treasury', price: '₹1,800' }
     ],
     diamonds: [
       { sku: 'diamonds_100', icon: '💎', name: '100 Diamonds', sub: 'Gem Pouch', price: '₹79' },
@@ -231,24 +231,39 @@ const RLA = (() => {
   function renderStoreScreen() {
     const packs = STORE_PACKS[state.storeTab] || STORE_PACKS.coins;
     return `
-      <div class="v3-screen-head">
-        <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back">←</button>
-        <div class="v3-ribbon"><h1 class="v3-ribbon-title">🛒 Royal Store</h1></div>
-        <button type="button" class="v3-round-btn" data-nav="send-gift" aria-label="Send Gift">🎁</button>
+      <header class="v3-screen-head rla-store-art-header" aria-label="Royal Store">
+        <button type="button" class="rla-store-art-icon" data-nav="home" aria-label="Back to Home">
+          <img src="./assets/ui/royal-store-chrome/back.webp" alt="" width="512" height="512" decoding="async">
+        </button>
+        <h1 class="rla-store-art-title">
+          <img src="./assets/ui/royal-store-chrome/header.webp" alt="Royal Store" width="860" height="154" decoding="async">
+        </h1>
+        <button type="button" class="rla-store-art-icon" data-nav="send-gift" aria-label="Open Send Gift">
+          <img src="./assets/ui/royal-store-chrome/gift.webp" alt="" width="512" height="512" decoding="async">
+        </button>
+      </header>
+      <div class="v3-grid-3 rla-store-art-tabs" role="group" aria-label="Store categories">
+        <button type="button" class="rla-store-art-tab" data-store-tab="coins" aria-label="Coins" aria-pressed="${state.storeTab === 'coins'}">
+          <img src="./assets/ui/royal-store-chrome/coins.webp" alt="" width="640" height="233" decoding="async">
+        </button>
+        <button type="button" class="rla-store-art-tab" data-store-tab="diamonds" aria-label="Diamonds" aria-pressed="${state.storeTab === 'diamonds'}">
+          <img src="./assets/ui/royal-store-chrome/diamonds.webp" alt="" width="640" height="236" decoding="async">
+        </button>
+        <button type="button" class="rla-store-art-tab" data-store-tab="offers" aria-label="Offers" aria-pressed="${state.storeTab === 'offers'}">
+          <img src="./assets/ui/royal-store-chrome/offers.webp" alt="" width="640" height="239" decoding="async">
+        </button>
       </div>
-      <div class="v3-grid-3">
-        <button type="button" class="v3-choice" data-store-tab="coins" aria-pressed="${state.storeTab === 'coins'}">🪙 Coins</button>
-        <button type="button" class="v3-choice" data-store-tab="diamonds" aria-pressed="${state.storeTab === 'diamonds'}">💎 Diamonds</button>
-        <button type="button" class="v3-choice" data-store-tab="offers" aria-pressed="${state.storeTab === 'offers'}">🔥 Offers</button>
-      </div>
-      <div class="v3-grid-2">
+      <div class="v3-grid-2 rla-store-grid" aria-label="${state.storeTab === 'coins' ? 'Coin packs' : 'Store packs'}">
         ${packs.map(p => `
-          <div class="rla-royal-card">
-            <span style="font-size:28px">${p.icon}</span>
-            <strong style="font-size:13px">${p.name}</strong>
-            <span style="font-size:10.5px;color:#e8c78b">${p.sub}</span>
-            <button type="button" class="rla-royal-btn" data-buy-sku="${p.sku}" data-buy-label="${p.name} — ${p.price}">${p.price}</button>
-          </div>
+          <article class="rla-royal-card ${p.art && state.storeTab === 'coins' ? 'rla-coin-art-card' : ''}" aria-label="${p.name}, ${p.sub}, ${p.price}">
+            ${p.art && state.storeTab === 'coins' ? `
+              <img class="rla-coin-pack-image" src="./assets/ui/royal-coin-store-centered/${p.art}.webp"
+                width="1040" height="840" alt="${p.name} — ${p.sub}" loading="lazy" decoding="async">` : `
+              <span style="font-size:28px">${p.icon}</span>
+              <strong style="font-size:13px">${p.name}</strong>
+              <span style="font-size:10.5px;color:#e8c78b">${p.sub}</span>`}
+            <button type="button" class="rla-royal-btn rla-coin-pack-price" data-buy-sku="${p.sku}" data-buy-label="${p.name} — ${p.price}" aria-label="View ${p.name}, price ${p.price}; checkout not available">${p.price}</button>
+          </article>
         `).join('')}
       </div>
       <p style="margin:0;font-size:11px;text-align:center;color:#e6c68a">🔒 Store checkout is disabled in this preview. No payment will be charged and no purchase currency will be credited.</p>

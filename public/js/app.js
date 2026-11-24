@@ -68,12 +68,12 @@ function renderGameShell(activeNav, mainHtml) {
     : `<span class="v3-avatar-emoji">${esc(s.profile.avatar)}</span>`;
 
   const navItems = [
-    { id: 'home', icon: '🏠', label: 'HOME' },
-    { id: 'events', icon: '📅', label: 'EVENTS', badge: window.RLAState?.canClaimDailyReward() ? '!' : '' },
-    { id: 'club', icon: '🛡️', label: 'CLUB' },
-    { id: 'inventory', icon: '🎒', label: 'INVENTORY', badge: readyMissions ? String(readyMissions) : '' },
-    { id: 'social', icon: '💬', label: 'SOCIAL' },
-    { id: 'more', icon: '⚙️', label: 'MORE' }
+    { id: 'home', icon: './assets/ui/royal-nav/home.webp', label: 'HOME' },
+    { id: 'events', icon: './assets/ui/royal-nav/events.webp', label: 'EVENTS', badge: window.RLAState?.canClaimDailyReward() ? '!' : '' },
+    { id: 'club', icon: './assets/ui/royal-nav/club.webp', label: 'CLUB' },
+    { id: 'inventory', icon: './assets/ui/royal-nav/inventory.webp', label: 'INVENTORY', badge: readyMissions ? String(readyMissions) : '' },
+    { id: 'social', icon: './assets/ui/royal-nav/social.webp', label: 'SOCIAL' },
+    { id: 'more', icon: './assets/ui/royal-nav/more.webp', label: 'MORE' }
   ];
 
   return `
@@ -109,7 +109,7 @@ function renderGameShell(activeNav, mainHtml) {
         <nav class="v3-bottom-dock" aria-label="Primary navigation">
           ${navItems.map(n => `
             <button type="button" class="v3-nav-tab ${activeNav === n.id ? 'active' : ''}" data-nav="${n.id}" aria-label="${n.label}">
-              <span class="ico">${n.icon}</span>
+              <span class="ico" aria-hidden="true"><img class="v3-nav-art" src="${n.icon}" alt="" width="26" height="26" decoding="async" draggable="false"></span>
               <span>${n.label}</span>
               ${n.badge ? `<span class="v3-badge-dot">${n.badge}</span>` : ''}
             </button>
@@ -143,14 +143,18 @@ function renderHomeBody() {
   return `
     <div class="v3-home-hero-grid">
       <div class="v3-rail">
-        <button type="button" class="v3-rail-btn promo" data-nav="store" aria-label="Starter Pack">
-          <span class="v3-rail-ico">🎁</span><span class="v3-rail-lbl">Starter Pack</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-portrait promo" data-nav="store" aria-label="Starter Pack">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/starter-pack.webp" alt="" draggable="false" decoding="async">
+        
+        
         </button>
-        <button type="button" class="v3-rail-btn" data-nav="events" aria-label="Events">
-          <span class="v3-rail-ico">📅</span><span class="v3-rail-lbl">Events</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-landscape" data-nav="events" aria-label="Events">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/events.webp" alt="" draggable="false" decoding="async">
+        
         </button>
-        <button type="button" class="v3-rail-btn" data-open="free-chest" aria-label="Free Bonus Chest">
-          <span class="v3-rail-ico">📺</span><span class="v3-rail-lbl">Bonus Chest</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-portrait" data-open="free-chest" aria-label="Free Bonus Chest">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/bonus-chest.webp" alt="" draggable="false" decoding="async">
+        
         </button>
       </div>
 
@@ -166,19 +170,23 @@ function renderHomeBody() {
       </div>
 
       <div class="v3-rail">
-        <button type="button" class="v3-rail-btn" data-open="vip" aria-label="VIP">
-          <span class="v3-rail-ico">👑</span><span class="v3-rail-lbl">VIP</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-landscape" data-open="vip" aria-label="VIP">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/vip.webp" alt="" draggable="false" decoding="async">
+        
+        
         </button>
-        <button type="button" class="v3-rail-btn" data-open="daily-reward" aria-label="Daily Reward">
-          ${dailyReady ? '<span class="v3-badge-dot">!</span>' : ''}
-          <span class="v3-rail-ico">🗓️</span><span class="v3-rail-lbl">Daily Reward</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-portrait" data-open="daily-reward" aria-label="Daily Reward">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/daily-reward.webp" alt="" draggable="false" decoding="async">${dailyReady ? '<span class="v3-badge-dot">!</span>' : ''}
+        
+        
         </button>
-        <button type="button" class="v3-rail-btn" data-nav="daily-goals" aria-label="Missions">
-          ${readyMissions ? `<span class="v3-badge-dot">${readyMissions}</span>` : ''}
-          <span class="v3-rail-ico">🎯</span><span class="v3-rail-lbl">Missions</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-landscape" data-nav="daily-goals" aria-label="Missions">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/missions.webp" alt="" draggable="false" decoding="async">${readyMissions ? `<span class="v3-badge-dot">${readyMissions}</span>` : ''}
+        
         </button>
-        <button type="button" class="v3-rail-btn" data-open="leaderboard" aria-label="Leaderboard">
-          <span class="v3-rail-ico">🏆</span><span class="v3-rail-lbl">Ranks</span>
+        <button type="button" class="v3-rail-btn sidebar-sheet sidebar-landscape" data-open="leaderboard" aria-label="Leaderboard">
+          <img class="v3-card-image" src="./assets/ui/royal-sidebar/ranks.webp" alt="" draggable="false" decoding="async">
+        
         </button>
       </div>
     </div>
@@ -187,46 +195,41 @@ function renderHomeBody() {
 
     <div class="v3-modes-top">
       <button type="button" class="v3-mode-card online" data-nav="online" data-hit-id="home-online" aria-label="Play Online">
-        <span class="v3-mode-ico">🌐</span>
-        <span class="v3-mode-plaque">PLAY<br>ONLINE</span>
-        <span class="v3-mode-sub">${isLive ? '🟢 Live' : '⚡ Instant'}</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/online.webp" width="880" height="1072" decoding="async" alt="" draggable="false" loading="eager">
+      
       </button>
       <button type="button" class="v3-mode-card team" data-nav="team" data-hit-id="home-team" aria-label="Team Battle">
-        <span class="v3-mode-ico">👥</span>
-        <span class="v3-mode-plaque">TEAM<br>BATTLE</span>
-        <span class="v3-mode-sub">🤝 2v2 Assist</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/team.webp" width="880" height="1072" decoding="async" alt="" draggable="false" loading="eager">
+      
       </button>
       <button type="button" class="v3-mode-card friends" data-nav="friends" data-hit-id="home-friends" aria-label="Play With Friends">
-        <span class="v3-mode-ico">💖</span>
-        <span class="v3-mode-plaque">PLAY WITH<br>FRIENDS</span>
-        <span class="v3-mode-sub">🔑 6-Digit Room</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/friends.webp" width="880" height="1072" decoding="async" alt="" draggable="false" loading="eager">
+      
       </button>
     </div>
 
     <div class="v3-modes-bottom">
       <button type="button" class="v3-mode-card computer" data-nav="computer" data-hit-id="home-computer" aria-label="Play vs Computer">
-        <span class="v3-mode-ico">🤖</span>
-        <span class="v3-mode-plaque">PLAY VS COMPUTER</span>
-        <span class="v3-mode-sub">4 AI Tiers · Classic & Rush</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/computer.webp" width="1340" height="722" decoding="async" alt="" draggable="false" loading="eager">
+      
       </button>
       <button type="button" class="v3-mode-card pass" data-nav="pass" data-hit-id="home-pass" aria-label="Pass and Play">
-        <span class="v3-mode-ico">🎲</span>
-        <span class="v3-mode-plaque">PASS & PLAY</span>
-        <span class="v3-mode-sub">2–4 Local · Team Up</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/pass.webp" width="1340" height="722" decoding="async" alt="" draggable="false" loading="eager">
+      
       </button>
     </div>
 
     <div class="v3-home-footer-strip">
       <button type="button" class="v3-rail-btn" data-open="lucky-spin" aria-label="Lucky Spin">
         ${freeSpinReady ? '<span class="v3-badge-dot">1</span>' : ''}
-        <span class="v3-rail-ico">🎡</span><span class="v3-rail-lbl">Lucky Spin</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/lucky-spin.webp" alt="" draggable="false" decoding="async" loading="lazy" width="622" height="638">
       </button>
       <button type="button" class="v3-tourney-banner" data-open="tournament" aria-label="Royal Tournaments">
-        <strong style="font-size:14px;color:#ffe680">🏆 ROYAL TOURNAMENTS</strong>
-        <span style="font-size:10.5px;color:#fff4d6">Season 28 · 2-Round Knockout · 5,000 🪙</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/tournament.webp" width="1422" height="762" decoding="async" alt="" draggable="false">
+      
       </button>
       <button type="button" class="v3-rail-btn" data-open="free-chest" aria-label="Free Coins">
-        <span class="v3-rail-ico">💰</span><span class="v3-rail-lbl">Free Coins</span>
+        <img class="v3-card-image" src="./assets/ui/royal-home-v2/free-coins.webp" alt="" draggable="false" decoding="async" loading="lazy" width="622" height="638">
       </button>
     </div>
   `;

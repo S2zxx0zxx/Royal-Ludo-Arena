@@ -1,0 +1,22 @@
+Royal Ludo Arena Store Chrome Integration v3.0.6
+
+Screens/controls:
+- Back: new original gold arrow sprite, preserves data-nav=home.
+- Royal Store: original red banner, centered without stretching.
+- Gift: new gold present sprite, preserves data-nav=send-gift.
+- Coins, Diamonds, Offers: original tab sprites; aria-pressed remains dynamic.
+- No baked ✓ on Offers; active state is controlled through CSS underline.
+- Six centered coin pack cards and prices remain independent and unchanged.
+- Real payments and product grants remain disabled.
+
+Verification:
+- 60/60 Node tests passed.
+- Chromium inline document smoke at widths 320, 360, 390, 460 and 921.
+- Every new image decoded successfully; every Coin card image decoded.
+- Coins/Diamonds/Offers switching passed at every width.
+- Back and Gift navigation passed at every width.
+- No horizontal overflow and no JavaScript page errors.
+- Physical-device and live-hosting QA not performed.
+- GitHub not yet updated in this environment.
+
+Artwork is optimized transparent WebP raster (not editable path SVG).

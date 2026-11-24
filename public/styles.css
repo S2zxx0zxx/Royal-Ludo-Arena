@@ -666,3 +666,187 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* Approved 10-card UI sheet: one standalone image per existing semantic button.
+   Contain every original card in its own box without cropping, stretching,
+   text overlays or hardcoded hover gradients. Grid dimensions determine size. */
+.v3-mode-card,
+.v3-rail-btn:has(> .v3-card-image),
+.v3-tourney-banner:has(> .v3-card-image) {
+  padding: 0;
+  gap: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+  min-width: 0;
+  position: relative;
+  display: block;
+  height: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.v3-mode-card.online,.v3-mode-card.team,.v3-mode-card.friends,
+.v3-mode-card.computer,.v3-mode-card.pass { background: transparent; }
+.v3-mode-card::after { content: none; animation: none; }
+.v3-card-image {display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none;}
+.v3-mode-card { aspect-ratio: 469 / 573; }
+.v3-modes-bottom .v3-mode-card { aspect-ratio: 474 / 270; }
+.v3-rail-btn:has(> .v3-card-image) {aspect-ratio: 352 / 480;}
+.v3-tourney-banner:has(> .v3-card-image) {aspect-ratio: 476 / 270;}
+.v3-mode-card:focus-visible,.v3-rail-btn:focus-visible,.v3-tourney-banner:focus-visible {
+  outline: 3px solid #ffe680; outline-offset: -2px; border-radius: 15px;
+}
+.v3-mode-card:active, .v3-rail-btn:has(> .v3-card-image):active,
+.v3-tourney-banner:has(> .v3-card-image):active {transform: translateY(2px);}
+.v3-rail-btn > .v3-badge-dot {z-index: 2;}
+/* Preserve compact side-box height beside the wide tournament art. */
+.v3-home-footer-strip { align-items: center; }
+.v3-home-footer-strip > .v3-rail-btn:not(:has(> .v3-card-image)) { height: 76px; justify-content: center; }
+
+/* Seven original side rail cards; exact aspect ratio and no crop, distortion,
+   duplicate emoji labels, or unnecessary image re-rendering. */
+.v3-home-hero-grid { grid-template-columns: minmax(0, 58px) minmax(0, 1fr) minmax(0, 58px); }
+.v3-rail { min-width: 0; gap: 6px; align-items: stretch; }
+.v3-rail-btn.sidebar-sheet {
+  display: block; position: relative; min-width: 0; width: 100%; height: auto;
+  margin: 0; padding: 0; background: transparent; border: 0;
+  border-radius: 9px; box-shadow: none; overflow: visible;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.v3-rail-btn.sidebar-portrait { aspect-ratio: 488 / 468; }
+.v3-rail-btn.sidebar-landscape { aspect-ratio: 488 / 384; }
+.v3-rail-btn.sidebar-sheet > .v3-card-image {
+  display: block; width: 100%; height: 100%; object-fit: contain;
+  user-select: none; pointer-events: none;
+}
+.v3-rail-btn.sidebar-sheet > .v3-badge-dot { z-index: 2; top: -3px; right: -3px; }
+.v3-rail-btn.sidebar-sheet:focus-visible {
+  outline: 2px solid #ffe680; outline-offset: 2px; border-radius: 9px;
+}
+.v3-rail-btn.sidebar-sheet:active { transform: translateY(1px); }
+@media (max-width: 360px) {
+  .v3-home-hero-grid {grid-template-columns: minmax(0, 53px) minmax(0,1fr) minmax(0,53px);gap:4px;}
+  .v3-rail {gap: 5px;}
+}
+
+/* Six original approved 3D navigation icons — individual transparent artwork.
+   The six existing tab slots and actions are unchanged. No duplicated raster labels. */
+.v3-bottom-dock .v3-nav-tab .ico {
+  width: clamp(20px, 5.65vw, 24px);
+  height: clamp(20px, 5.65vw, 24px);
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+.v3-bottom-dock .v3-nav-tab .v3-nav-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+.v3-bottom-dock .v3-nav-tab { min-width: 0; }
+.v3-bottom-dock .v3-nav-tab > span:not(.ico):not(.v3-badge-dot) {
+  white-space: nowrap;
+  font-size: clamp(8px, 2.1vw, 9px);
+}
+
+/* Owner-supplied original Royal Coin Store cards: preserve baked card artwork,
+   retain independent semantic price controls and unchanged two-column grid. */
+.rla-store-grid { gap: 7px; align-items: stretch; }
+.rla-store-grid .rla-coin-art-card {
+  min-width: 0;
+  padding: 0 0 7px;
+  gap: 4px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  overflow: hidden;
+  box-shadow: none;
+}
+.rla-coin-pack-image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 26 / 21;
+  display: block;
+  object-fit: contain;
+  border: 0;
+  border-radius: 12px;
+  flex: none;
+}
+.rla-store-grid .rla-coin-art-card .rla-coin-pack-price {
+  width: calc(100% - 16px);
+  max-width: 190px;
+  min-height: 34px;
+  margin: 0 auto;
+  font-size: clamp(11px, 3.6vw, 14px);
+  padding: 6px 5px;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.rla-store-grid .rla-coin-art-card:focus-within {
+  outline: 2px solid #ffe680;
+  outline-offset: -2px;
+}
+@media(max-width: 359px) {
+  .rla-store-grid { gap: 5px; }
+  .rla-store-grid .rla-coin-art-card .rla-coin-pack-price {
+    width: calc(100% - 12px);font-size: 11px;
+  }
+}
+
+
+/* Original Royal Store header/tabs: independent crop-safe transparent WebP sprites.
+   No rasterized selected tick: state comes only from aria-pressed and a subtle bottom indicator. */
+.rla-store-art-header {
+  display:grid; grid-template-columns:clamp(38px,11vw,48px) minmax(0,1fr) clamp(38px,11vw,48px);
+  gap:clamp(4px,1.4vw,9px); align-items:center; width:100%; min-width:0;
+}
+.rla-store-art-icon, .rla-store-art-title, .rla-store-art-tab { min-width:0; }
+.rla-store-art-title { margin:0; line-height:0; overflow:visible; }
+.rla-store-art-title img { display:block; width:100%; height:auto; object-fit:contain; }
+.rla-store-art-icon {
+  cursor:pointer; border:0; background:transparent; box-shadow:none; padding:0; width:100%;
+  aspect-ratio:1 / 1; display:grid; place-items:center; border-radius:10px; touch-action:manipulation;
+}
+.rla-store-art-icon img {display:block; width:100%; height:100%; object-fit:contain;pointer-events:none;user-select:none;}
+.rla-store-art-tabs {grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(4px,1.6vw,8px);min-width:0;}
+.rla-store-art-tab {
+  position:relative; width:100%; height:clamp(44px,12.5vw,56px);
+  border:0; background:transparent; padding:0; display:grid;place-items:center;
+  cursor:pointer; border-radius:10px; touch-action:manipulation; transition:filter 140ms ease;
+}
+.rla-store-art-tab img {
+  width:100%;height:100%;display:block;object-fit:contain;pointer-events:none;user-select:none;
+}
+.rla-store-art-tab[aria-pressed="true"] {filter:brightness(1.09);}
+.rla-store-art-tab[aria-pressed="true"]::after {
+  content:'';position:absolute;bottom:1px;left:29%;right:29%;height:3px;border-radius:99px;
+  background:#ffdb63;box-shadow:0 1px 2px #512509;pointer-events:none;
+}
+.rla-store-art-icon:focus-visible,.rla-store-art-tab:focus-visible {outline:2px solid #fff2ad;outline-offset:1px;}
+.rla-store-art-icon:active,.rla-store-art-tab:active {transform:translateY(1px);}
+@media(max-width:350px){.rla-store-art-header{grid-template-columns:36px minmax(0,1fr) 36px;gap:3px}.rla-store-art-tabs{gap:3px}}
+@media(prefers-reduced-motion:reduce){.rla-store-art-tab{transition:none}}
+
+/* Eight original user-approved Home cards v3.0.7. Real asset proportions
+   fit the existing click zones with no stretching and no duplicate text overlays. */
+.v3-mode-card { aspect-ratio: 880 / 1072; }
+.v3-modes-bottom .v3-mode-card { aspect-ratio: 1340 / 722; }
+.v3-tourney-banner:has(> .v3-card-image) { aspect-ratio: 1422 / 762; }
+.v3-home-footer-strip > .v3-rail-btn:has(> .v3-card-image) {
+  width: 100%; aspect-ratio: 622 / 638; align-self: center; height: auto;
+  padding: 0; border: 0; background: transparent; box-shadow: none;
+  display: block; overflow: visible; min-width: 0; position: relative;
+}
+.v3-home-footer-strip .v3-card-image {
+  display: block; width: 100%; height: 100%; object-fit: contain;
+}
+.v3-home-footer-strip > .v3-rail-btn:has(> .v3-card-image):focus-visible {
+  outline: 3px solid #ffe680; outline-offset: 2px; border-radius: 12px;
+}
+.v3-home-footer-strip > .v3-rail-btn:has(> .v3-card-image):active {transform: translateY(2px);}
