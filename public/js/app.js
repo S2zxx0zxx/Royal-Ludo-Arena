@@ -28,7 +28,14 @@ const root = app;
 const state = {
   screen: 'home',
   settings: structuredClone(DEFAULTS),
-  roomCode: ''
+  roomCode: '',
+  partyCode: '',
+  passRoster: [
+    { name: 'Player 1', isBot: false },
+    { name: 'Player 2', isBot: false },
+    { name: 'Player 3', isBot: false },
+    { name: 'Player 4', isBot: false }
+  ]
 };
 
 const coreScreens = new Set(Object.keys(SCREENS));
@@ -416,7 +423,7 @@ function launchGame(screen) {
 
   if (screen === 'computer') {
     const count = Number(cfg.playerCount || 2);
-    const colors = window.LudoCore.getSeatColors(count, 'blue');
+    const colors = window.LudoCore.getSeatColors(count, cfg.tokenColor || 'blue');
     const players = colors.map((color, i) => ({
       color,
       name: i === 0 ? profile.name : bots[i - 1].name,
@@ -439,13 +446,17 @@ function launchGame(screen) {
     const count = Number(cfg.playerCount || 4);
     const colors = window.LudoCore.getSeatColors(count, cfg.tokenColor || 'blue');
     const avatars = [profile.avatar, '🦁', '🦅', '🐉'];
-    const players = colors.map((color, i) => ({
-      color,
-      name: i === 0 ? profile.name : `Player ${i + 1}`,
-      avatar: avatars[i],
-      isHuman: true,
-      isLocalHuman: true
-    }));
+    const players = colors.map((color, i) => {
+      const seat = state.passRoster[i] || { name: i === 0 ? profile.name : `Player ${i + 1}`, isBot: false };
+      return {
+        color,
+        name: (seat.name || '').trim() || `Player ${i + 1}`,
+        avatar: seat.isBot ? '🤖' : avatars[i],
+        isHuman: !seat.isBot,
+        isLocalHuman: !seat.isBot,
+        aiLevel: 'medium'
+      };
+    });
     window.RLAGameView.startMatch({
       mode: cfg.ruleMode || 'classic',
       entryMode: 'pass',
@@ -493,6 +504,10 @@ function selectSetting(group, value) {
     window.RLAGameView?.toast('Team Up needs exactly four players.');
     return;
   }
+  if (group === 'entryFee' && value !== '0') {
+    window.RLAGameView?.toast('Paid coin stakes are unavailable in this preview.');
+    return;
+  }
   window.RLASound?.select();
   settings[group] = value;
   if (screen === 'pass' && group === 'playerCount' && value !== '4' && settings.ruleMode === 'teamUp') {
@@ -521,12 +536,17 @@ function draw() {
   document.title = `${SCREENS[state.screen]} | Royal Ludo Arena`;
 
   let bodyHtml = '';
+  const isLive = Boolean(window.RLAClient?.isOnline());
+  if (state.screen === 'pass' && window.RLAState) {
+    const pName = window.RLAState.get().profile.name;
+    if (state.passRoster[0].name === 'Player 1' && pName) state.passRoster[0].name = pName;
+  }
   if (state.screen === 'home') bodyHtml = renderHomeBody();
-  else if (state.screen === 'online') bodyHtml = renderOnlineBody();
-  else if (state.screen === 'team') bodyHtml = renderTeamBody();
-  else if (state.screen === 'friends') bodyHtml = renderFriendsBody();
-  else if (state.screen === 'computer') bodyHtml = renderComputerBody();
-  else if (state.screen === 'pass') bodyHtml = renderPassBody();
+  else if (state.screen === 'online') bodyHtml = window.RLAModes3D ? window.RLAModes3D.renderOnline(state.settings.online, isLive) : renderOnlineBody();
+  else if (state.screen === 'team') bodyHtml = window.RLAModes3D ? window.RLAModes3D.renderTeam(state.settings.team, state.partyCode, isLive) : renderTeamBody();
+  else if (state.screen === 'friends') bodyHtml = window.RLAModes3D ? window.RLAModes3D.renderFriends(state.settings.friends, state.roomCode, isLive) : renderFriendsBody();
+  else if (state.screen === 'computer') bodyHtml = window.RLAModes3D ? window.RLAModes3D.renderComputer(state.settings.computer) : renderComputerBody();
+  else if (state.screen === 'pass') bodyHtml = window.RLAModes3D ? window.RLAModes3D.renderPass(state.settings.pass, state.passRoster) : renderPassBody();
 
   root.innerHTML = renderGameShell('home', bodyHtml);
   bindShellEvents(root);
@@ -546,12 +566,51 @@ function draw() {
   });
   const roomInput = root.querySelector('#room-code');
   if (roomInput) {
+    const syncOtp = () => {
+      const cells = root.querySelectorAll('.rla-otp-cell');
+      cells.forEach((cell, idx) => {
+        const ch = state.roomCode[idx] || '•';
+        cell.textContent = ch;
+        cell.classList.toggle('filled', Boolean(state.roomCode[idx]));
+      });
+    };
     roomInput.addEventListener('input', () => {
       const sanitized = roomInput.value.replace(/[^0-9]/g, '').slice(0, 6);
       roomInput.value = sanitized;
       state.roomCode = sanitized;
+      syncOtp();
+    });
+    root.querySelector('#v4-paste-code')?.addEventListener('click', async () => {
+      try {
+        const txt = (await navigator.clipboard.readText()).replace(/[^0-9]/g, '').slice(0, 6);
+        if (txt) { state.roomCode = txt; roomInput.value = txt; syncOtp(); window.RLASound?.select(); }
+      } catch { window.RLAGameView?.toast('Tap the box and paste your 6-digit code!'); }
     });
   }
+  const partyInput = root.querySelector('#team-party-code');
+  if (partyInput) {
+    partyInput.addEventListener('input', () => {
+      const sanitized = partyInput.value.replace(/[^0-9]/g, '').slice(0, 6);
+      partyInput.value = sanitized;
+      state.partyCode = sanitized;
+    });
+  }
+  root.querySelectorAll('[data-pass-name]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx = Number(inp.dataset.passName);
+      if (state.passRoster[idx]) state.passRoster[idx].name = inp.value.slice(0, 18);
+    });
+  });
+  root.querySelectorAll('[data-pass-bot]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.passBot);
+      if (state.passRoster[idx]) {
+        state.passRoster[idx].isBot = !state.passRoster[idx].isBot;
+        window.RLASound?.click();
+        draw();
+      }
+    });
+  });
 }
 
 window.RLAShell = { renderGameShell, bindShellEvents, go, esc };

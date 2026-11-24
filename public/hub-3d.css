@@ -1,0 +1,590 @@
+/* ============================================================================
+   Royal Ludo Arena V4.0.0 — Real Game Splash/Loader, 3D Lucky Spin Cabinet,
+   3D Motion-Graphics Treasury Chest & 6 Upgraded Home Hubs CSS
+   ============================================================================ */
+
+/* ---------- 1. Real Game Splash & Loading Screen ---------- */
+.rla-splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #240e04;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  transition: opacity 0.48s ease, transform 0.48s ease;
+}
+.rla-splash-overlay.exit {
+  opacity: 0;
+  transform: scale(1.06);
+  pointer-events: none;
+}
+.rla-splash-rays {
+  position: absolute;
+  width: 150vmax;
+  height: 150vmax;
+  opacity: 0.14;
+  animation: rlaSlowSpin 28s linear infinite;
+  pointer-events: none;
+}
+@keyframes rlaSlowSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.rla-splash-card {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 360px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.rla-splash-crest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  animation: rlaSplashFloat 2.8s ease-in-out infinite;
+}
+@keyframes rlaSplashFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+.rla-splash-crown {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 3px solid #f4bd3b;
+  box-shadow: 0 0 28px rgba(244, 189, 59, 0.55), 0 8px 20px rgba(0, 0, 0, 0.7);
+  object-fit: cover;
+}
+.rla-splash-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #ffe680;
+  text-shadow: 0 4px 0 #5b2606, 0 8px 18px rgba(0, 0, 0, 0.75);
+}
+.rla-splash-sub {
+  display: inline-block;
+  background: #8f1422;
+  border: 1.5px solid #f4bd3b;
+  border-radius: 999px;
+  padding: 3px 14px;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: #fff5d9;
+}
+.rla-splash-hero-box {
+  width: 240px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid #f4bd3b;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 24px rgba(244, 189, 59, 0.25);
+}
+.rla-splash-hero-box img {
+  width: 100%;
+  display: block;
+}
+.rla-splash-loader-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rla-splash-bar-track {
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: #140702;
+  border: 2px solid #f4bd3b;
+  padding: 2px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+.rla-splash-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: #f4bd3b;
+  box-shadow: 0 0 12px #ffe680;
+  transition: width 0.22s ease;
+}
+.rla-splash-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 800;
+  color: #f3dba4;
+}
+.rla-splash-tip {
+  font-size: 11px;
+  color: #d4b279;
+  font-style: italic;
+}
+
+/* ---------- 2. 3D Realistic Lucky Spin Cabinet ---------- */
+.rla-spin-cabinet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 2px;
+}
+.rla-spin-bezel {
+  position: relative;
+  width: 264px;
+  height: 264px;
+  border-radius: 50%;
+  background: #471c07;
+  border: 6px solid #f4bd3b;
+  box-shadow:
+    inset 0 0 16px rgba(0, 0, 0, 0.85),
+    0 10px 28px rgba(0, 0, 0, 0.75),
+    0 0 26px rgba(244, 189, 59, 0.35);
+  display: grid;
+  place-items: center;
+}
+.rla-led-ring {
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+}
+.rla-led-bulb {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe680;
+  box-shadow: 0 0 8px #ffe680;
+  transform: translate(-50%, -50%);
+  animation: rlaLedBlink 0.9s steps(2, end) infinite;
+}
+.rla-led-bulb.alt {
+  background: #ff5964;
+  box-shadow: 0 0 8px #ff5964;
+  animation-delay: 0.45s;
+}
+@keyframes rlaLedBlink {
+  0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  50% { opacity: 0.32; transform: translate(-50%, -50%) scale(0.8); }
+}
+.rla-spin-flapper {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: 50% 25%;
+  z-index: 12;
+  width: 30px;
+  height: 36px;
+  transition: transform 0.06s ease-out;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.75));
+}
+.rla-spin-flapper.tick {
+  transform: translateX(-50%) rotate(-24deg);
+}
+.rla-spin-rotor {
+  width: 236px;
+  height: 236px;
+  border-radius: 50%;
+  will-change: transform;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.65));
+}
+.rla-spin-hub-btn {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 3px solid #fff3bd;
+  background: #8f1422;
+  color: #ffe680;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 0 #4d0810, 0 8px 18px rgba(0, 0, 0, 0.7);
+}
+.rla-spin-hub-btn:active:not(:disabled) { transform: scale(0.93); }
+.rla-spin-hub-btn:disabled { opacity: 0.65; cursor: default; }
+
+.rla-spin-win-banner {
+  width: 100%;
+  background: #5c0d16;
+  border: 2px solid #f4bd3b;
+  border-radius: 12px;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffe680;
+}
+.rla-spin-history {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+.rla-pill-chip {
+  background: #2b1105;
+  border: 1px solid rgba(244, 189, 59, 0.55);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff4d6;
+}
+.rla-odds-box {
+  width: 100%;
+  background: #240e04;
+  border: 1.5px solid rgba(244, 189, 59, 0.45);
+  border-radius: 11px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #f3dba4;
+  display: none;
+}
+.rla-odds-box.open { display: block; }
+
+/* ---------- 3. 3D Motion-Graphics Treasure Chest & Free Coins Vault ---------- */
+.rla-chest-stage {
+  position: relative;
+  width: 100%;
+  padding: 14px 10px 10px;
+  border-radius: 16px;
+  background: #291005;
+  border: 2px solid #f4bd3b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.65);
+}
+.rla-chest-wrap {
+  position: relative;
+  width: 132px;
+  height: 118px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.rla-chest-wrap.ready {
+  animation: rlaChestWiggle 2s ease-in-out infinite;
+}
+@keyframes rlaChestWiggle {
+  0%, 70%, 100% { transform: rotate(0deg) scale(1); }
+  76% { transform: rotate(-5deg) scale(1.05); }
+  82% { transform: rotate(5deg) scale(1.06); }
+  88% { transform: rotate(-4deg) scale(1.04); }
+  94% { transform: rotate(3deg) scale(1.02); }
+}
+.rla-chest-lid {
+  transform-origin: 66px 46px;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rla-chest-wrap.opened .rla-chest-lid {
+  transform: translateY(-16px) rotate(-18deg);
+}
+.rla-coin-spark {
+  position: absolute;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 25;
+  animation: rlaCoinFly 0.95s ease-out forwards;
+}
+@keyframes rlaCoinFly {
+  0%   { opacity: 1; transform: translate(0, 0) scale(0.7); }
+  65%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.25) rotate(240deg); }
+}
+.rla-clock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #1a0902;
+  border: 1.5px solid #f4bd3b;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #ffe680;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 4. 3D Royal Podium (Leaderboard / Ranks) ---------- */
+.rla-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  align-items: end;
+  gap: 8px;
+  padding: 10px 4px 4px;
+}
+.rla-podium-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.rla-podium-av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid #f4bd3b;
+  background: #471c07;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+.rla-podium-col.rank-1 .rla-podium-av {
+  width: 54px;
+  height: 54px;
+  font-size: 26px;
+  border-color: #ffe680;
+  box-shadow: 0 0 18px rgba(244, 189, 59, 0.65);
+}
+.rla-podium-stand {
+  width: 100%;
+  border-radius: 10px 10px 4px 4px;
+  border: 2px solid #f4bd3b;
+  padding: 6px 4px;
+  font-weight: 900;
+  color: #351504;
+}
+.rla-podium-col.rank-1 .rla-podium-stand { background: #f4bd3b; min-height: 62px; }
+.rla-podium-col.rank-2 .rla-podium-stand { background: #d4dce6; border-color: #f8fafc; min-height: 48px; }
+.rla-podium-col.rank-3 .rla-podium-stand { background: #d98a4e; border-color: #ffd3a8; min-height: 40px; }
+
+/* ---------- 5. Day-7 Mega Vault & Starter Pack Showcase ---------- */
+.rla-day7-mega {
+  grid-column: 1 / -1;
+  background: #73111c;
+  border: 2.5px solid #ffe680;
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(244, 189, 59, 0.25);
+}
+.rla-starter-showcase {
+  background: #5c0d16;
+  border: 2.5px solid #ffe680;
+  border-radius: 16px;
+  padding: 14px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+.rla-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #168036;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid #86efac;
+  vertical-align: middle;
+}
+
+/* ---------- 6. Compact, Proportional Lucky Spin & Free Coins Footer Icons ---------- */
+.v3-home-footer-strip {
+  grid-template-columns: 56px 1fr 56px !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.v3-home-footer-strip > .v3-rail-btn:has(> .v3-card-image) {
+  max-width: 56px;
+  margin: 0 auto;
+}
+
+/* ---------- 7. V4.1 AAA 3D Mode Setup Screens (Online, Team, Friends, Computer, Pass) ---------- */
+.rla-stake-card { padding: 7px 4px; gap: 2px; }
+.rla-stake-tier { font-size: 9px; text-transform: uppercase; color: #ffe680; letter-spacing: 0.06em; }
+.rla-stake-pot { font-size: 9.5px; color: #86efac; font-weight: 800; }
+.rla-mode-opt { padding: 10px 12px; }
+.rla-opt-tag {
+  flex: none;
+  background: #240d04;
+  border: 1.5px solid #f4bd3b;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  color: #ffe680;
+}
+.rla-match-summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #f3dba4;
+  background: #240d04;
+  border: 1.5px solid rgba(244, 189, 59, 0.45);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.rla-cta-pulse {
+  animation: rlaCtaBreath 2.1s ease-in-out infinite;
+}
+@keyframes rlaCtaBreath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.018); }
+}
+
+/* 2v2 Team Battle VS Crest */
+.rla-vs-stage {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  background: #291005;
+  border: 2px solid #f4bd3b;
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+.rla-vs-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #fff5d9;
+}
+.rla-vs-team.t1 { background: #14366b; border: 1.5px solid #60a5fa; }
+.rla-vs-team.t2 { background: #6b141e; border: 1.5px solid #f87171; }
+.rla-vs-pawns { display: flex; align-items: center; gap: 4px; }
+.rla-vs-pawns img { width: 32px; height: 32px; object-fit: contain; }
+.rla-vs-bolt {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f4bd3b;
+  color: #361504;
+  border: 2.5px solid #fff5d9;
+  font-size: 14px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 16px rgba(244, 189, 59, 0.7);
+}
+.rla-duo-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #240d04;
+  border: 1.5px solid #f4bd3b;
+  border-radius: 12px;
+  padding: 9px;
+}
+.rla-assist-callout {
+  background: #240d04;
+  border: 1px solid rgba(244, 189, 59, 0.45);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 11px;
+  color: #f3dba4;
+  text-align: center;
+}
+
+/* Friends 6-Box Segmented OTP Code */
+.rla-otp-wrap { display: flex; flex-direction: column; gap: 8px; }
+.rla-otp-boxes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.rla-otp-cell {
+  height: 40px;
+  border-radius: 10px;
+  background: #1c0a03;
+  border: 2px solid rgba(244, 189, 59, 0.45);
+  color: #8c6a3e;
+  font-size: 19px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+.rla-otp-cell.filled {
+  background: #3d1807;
+  border-color: #ffe680;
+  color: #ffe680;
+  box-shadow: 0 0 10px rgba(244, 189, 59, 0.35);
+}
+
+/* Computer Mascot & Skill Bars */
+.rla-mascot-stage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #291005;
+  border: 2px solid #f4bd3b;
+  border-radius: 15px;
+  padding: 9px 11px;
+}
+.rla-mascot-img {
+  width: 66px;
+  height: 66px;
+  border-radius: 14px;
+  border: 2px solid #f4bd3b;
+  flex: none;
+  animation: rlaSplashFloat 2.8s ease-in-out infinite;
+}
+.rla-mascot-bubble {
+  flex: 1;
+  background: #421c0b;
+  border: 1.5px solid rgba(244, 189, 59, 0.55);
+  border-radius: 12px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  color: #fff5d9;
+  line-height: 1.35;
+}
+.rla-skill-bars { display: inline-flex; gap: 2px; margin-top: 2px; }
+.rla-skill-bars i { width: 8px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.22); }
+.rla-skill-bars i.on { background: #ffe680; }
+.rla-pawn-pick { padding: 6px 4px; }
+
+/* Pass & Play Inline Roster */
+.rla-roster-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #240d04;
+  border: 1.5px solid rgba(244, 189, 59, 0.45);
+  border-radius: 11px;
+  padding: 6px 8px;
+}
+.rla-roster-input {
+  flex: 1;
+  min-width: 0;
+  background: #fff6e0;
+  color: #341605;
+  border: 1.5px solid #c9922c;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-weight: 800;
+}

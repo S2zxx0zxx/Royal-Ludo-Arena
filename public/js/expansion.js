@@ -155,7 +155,7 @@ const RLA = (() => {
     return `
       <div class="v3-screen-head">
         <button type="button" class="v3-round-btn" data-nav="home" aria-label="Back">←</button>
-        <div class="v3-ribbon"><h1 class="v3-ribbon-title">📅 Events & Rewards</h1></div>
+        <div class="v3-ribbon"><h1 class="v3-ribbon-title">📅 Events & Rewards <span class="rla-live-tag">${window.RLAClient?.isOnline() ? 'LIVE' : 'PRACTICE'}</span></h1></div>
         <button type="button" class="v3-round-btn" data-open="help" aria-label="Help">?</button>
       </div>
 
@@ -223,6 +223,7 @@ const RLA = (() => {
         <div class="v3-ribbon"><h1 class="v3-ribbon-title">🎯 Daily Goals</h1></div>
         <button type="button" class="v3-round-btn" data-nav="home" aria-label="Home">🏠</button>
       </div>
+      <div style="display:flex;justify-content:center"><span class="rla-clock-badge">⏱ Daily Reset: ${window.RLAHub3D ? window.RLAHub3D.formatUtcResetCountdown() : "24h"}</span></div>
       <div class="v3-panel"><div class="rla-list">${rows}</div></div>
       <button type="button" class="v3-cta-btn gold" id="v3-claim-all-m">Claim All Ready Rewards</button>
     `;
@@ -579,11 +580,13 @@ const RLA = (() => {
 
   function openFeature(name) {
     switch (name) {
-      case 'daily-reward': openDailyRewardModal(); break;
-      case 'lucky-spin': openLuckySpinModal(); break;
-      case 'leaderboard': openLeaderboardModal(); break;
+      case 'daily-reward': window.RLAHub3D ? window.RLAHub3D.openDailyReward() : openDailyRewardModal(); break;
+      case 'lucky-spin': window.RLAHub3D ? window.RLAHub3D.openLuckySpin() : openLuckySpinModal(); break;
+      case 'leaderboard': window.RLAHub3D ? window.RLAHub3D.openLeaderboard() : openLeaderboardModal(); break;
       case 'inbox': openInboxModal(); break;
-      case 'free-chest': openFreeChestModal(); break;
+      case 'free-chest': window.RLAHub3D ? window.RLAHub3D.openFreeCoinsVault(false) : openFreeChestModal(); break;
+      case 'bonus-chest': window.RLAHub3D ? window.RLAHub3D.openBonusChest() : openFreeChestModal(); break;
+      case 'starter-pack': window.RLAHub3D ? window.RLAHub3D.openStarterPack() : go('store'); break;
       case 'tournament': window.RLAGameView?.openTournamentModal(); break;
       case 'settings': go('more'); break;
       case 'vip': modal('ROYAL VIP CLUB 👑', 'Unlock Board Themes & Dice Skins in Inventory using earned Coins & Diamonds!'); break;

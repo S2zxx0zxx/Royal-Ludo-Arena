@@ -1,17 +1,21 @@
-const CACHE = 'royal-ludo-arena-v3.0.7-home8';
+const CACHE = 'royal-ludo-arena-v3.1.0-hubs';
 const BASE = [
   './',
   './index.html',
   './styles.css',
   './extended.css',
   './game.css',
+  './hub-3d.css',
   './js/sound.js',
   './js/state.js',
   './js/realtime-client.js',
   './js/ludo-engine.js',
   './js/ludo-ai.js',
   './js/game-view.js',
+  './js/modes-3d.js',
   './js/app.js',
+  './js/splash-loader.js',
+  './js/hub-3d.js',
   './js/expansion.js',
   './assets/icons/icon.svg',
   './assets/game/board-royal-walnut.webp',
