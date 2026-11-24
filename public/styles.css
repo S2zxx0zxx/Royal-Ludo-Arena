@@ -850,3 +850,14 @@ html, body {
   outline: 3px solid #ffe680; outline-offset: 2px; border-radius: 12px;
 }
 .v3-home-footer-strip > .v3-rail-btn:has(> .v3-card-image):active {transform: translateY(2px);}
+
+/* Floating side shortcuts: remove only the baked-in box/background via per-icon alpha masks.
+   Original WebP pixels, sizing, labels, and semantic click targets stay unchanged. */
+.v3-rail-btn.sidebar-sheet > .v3-card-image { -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-position: center; mask-position: center; }
+.v3-rail-btn.sidebar-sheet[data-nav="store"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/starter-pack.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/starter-pack.svg"); }
+.v3-rail-btn.sidebar-sheet[data-nav="events"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/events.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/events.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="free-chest"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/bonus-chest.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/bonus-chest.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="vip"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/vip.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/vip.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="daily-reward"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/daily-reward.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/daily-reward.svg"); }
+.v3-rail-btn.sidebar-sheet[data-nav="daily-goals"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/missions.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/missions.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="leaderboard"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/ranks.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/ranks.svg"); }
