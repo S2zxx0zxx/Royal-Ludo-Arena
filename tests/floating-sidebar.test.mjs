@@ -16,7 +16,7 @@ test('only seven home side shortcuts receive floating alpha masks',()=>{
   assert.ok(sw.includes('royal-sidebar-masks/'+name+'.svg'));
  }
  assert.match(styles,/sidebar-sheet[^\n]*> \.v3-card-image/);
- assert.match(sw,/royal-ludo-arena-v3\.1\.1-floating-sidebar/);
+ assert.match(sw,/royal-ludo-arena-v3\.1\.2-floating-footer/);
 });
 test('original seven navigation/feature actions remain intact',()=>{
  for(const action of ['data-nav="store"','data-nav="events"','data-open="free-chest"','data-open="vip"','data-open="daily-reward"','data-nav="daily-goals"','data-open="leaderboard"']) assert.ok(app.includes(action));
