@@ -1,4 +1,4 @@
-const CACHE = 'royal-ludo-arena-v3.1.2-floating-footer';
+const CACHE = 'royal-ludo-arena-v3.1.3-native-3d';
 const BASE = [
   './',
   './index.html',
@@ -11,6 +11,9 @@ const BASE = [
   './js/realtime-client.js',
   './js/ludo-engine.js',
   './js/ludo-ai.js',
+  './js/ludo-model-meshes.js',
+  './js/ludo-3d-renderer.js',
+  './assets/game/3d/NOTICE.txt',
   './js/game-view.js',
   './js/modes-3d.js',
   './js/app.js',
@@ -79,7 +82,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('royal-ludo-arena-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

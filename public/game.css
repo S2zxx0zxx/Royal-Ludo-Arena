@@ -515,3 +515,15 @@
   transform: translate(-50%, -112%) scale(1.26) !important;
   filter: drop-shadow(0 12px 6px rgba(0, 0, 0, 0.48));
 }
+
+/* Canonical board mesh and original CC0 model graphics; original artwork remains fallback. */
+.rla-board-mesh{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block}
+.rla-mesh-ready .rla-board-art-img{visibility:hidden}
+.rla-pawn-img[data-mesh="true"]{object-fit:contain;filter:drop-shadow(0 2px 2px #210f08aa)}
+.rla-pawn-btn:disabled{opacity:1;cursor:default}
+.rla-pawn-btn:focus-visible,.rla-dice-btn:focus-visible{outline:2px solid #ffefbb;outline-offset:2px}
+.rla-dice-mesh,.rla-dice-mesh-roll,.rla-dice-mesh-frame{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+.rla-dice-mesh-roll{position:relative}
+.rla-dice-mesh-frame{position:absolute;inset:0;opacity:0;animation:rlaMeshFrames .42s steps(1,end) infinite;animation-delay:calc(var(--frame) * -.07s)}
+@keyframes rlaMeshFrames{0%{opacity:1}16.667%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.rla-dice-mesh-frame{animation:none;opacity:0}.rla-dice-mesh-frame:first-child{opacity:1}.rla-dice-btn.ready,.rla-pawn-btn.movable,.rla-board-frame.shake{animation:none}.rla-pawn-btn{transition:none}}
