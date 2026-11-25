@@ -24,5 +24,5 @@ test('No other footer card gets masked; original labels stay readable',()=>{
   assert.ok(app.includes('royal-home-v2/tournament.webp'));
   assert.ok(!css.includes('royal-footer-masks/tournament'));
   assert.match(css,/content: attr\(aria-label\)/);
-  assert.match(sw,/royal-ludo-arena-v3\.1\.2-floating-footer/);
+  assert.match(sw,/royal-ludo-arena-v3\.1\.3-native-3d/);
 });

@@ -1,0 +1,15 @@
+Voxel Board Games
+CC0
+Created by Kytric
+
+Original source: Ludo_Only_3D_Resources.zip
+SHA-256 6dba6d88b556596d5ab8255a8e27fc57c0866ae2486022ed17099b50dbe8d340
+Source info.txt SHA-256 b6ab2920c6dc1537923a75a785c568e25d5ce772f67f7e4cb45b13b2e7fed915
+Source model data:
+dice-v1-white-black.bin db3d65b08265f193c380223b1506b54c697728b0bdd5cfb80653c5c21bc1c7ae
+token-v2-red.bin ba3ae5d7039530518b12699ce300eb485687ae5f3fc7beb30ba750e9dc6bb842
+ludo-board-black-tan.bin 84b1966b1f06759e1ff5ce9f70672d2963c317bdde287e4112658208415a48b5
+Godot ludo.tscn ad1a736da28cbd24495e67b4aec989001912eed5e655b3f5dfc393a2f087d165
+Dice and pawn source geometry is deduplicated/quantized to .01 model units and recolored.
+Board and camera are independently adapted for the existing 15x15 rules and Royal palette; not a raw import of the incompatible board scene.
+No Chess resources included. CC0: https://creativecommons.org/publicdomain/zero/1.0/

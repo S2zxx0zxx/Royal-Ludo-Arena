@@ -120,6 +120,8 @@
 
   function buildDiceFaceHTML(value, rolling = false) {
     const v = (value >= 1 && value <= 6) ? value : 6;
+    const mesh = global.RLA3D?.diceHTML(v, global.RLAState.get().inventory.activeDice || 'classic-ivory', rolling);
+    if (mesh) return mesh;
     const face = (n) => {
       const on = new Set(PIP_MAP[n]);
       let pips = '';
@@ -311,6 +313,7 @@
       });
     });
 
+    global.RLA3D?.attachBoard(containerEl.querySelector('.rla-board-frame'), state.inventory.activeBoard);
     renderTokens();
     updateTimerRing();
   }
@@ -361,8 +364,10 @@
         btn.style.height = '6.2%';
       }
       btn.setAttribute('aria-label', `${player.displayName} ${player.color} pawn ${token.id + 1}`);
-      btn.innerHTML = `${isMovable ? '<span class="rla-pawn-ring"></span>' : ''}<img class="rla-pawn-img" src="./assets/game/pawn-${player.color}.png" alt="" draggable="false">${group.length > 1 && idxInGroup === group.length - 1 ? `<span class="rla-stack-badge">${group.length}</span>` : ''}`;
+      const meshPawn = global.RLA3D?.pawnURL(player.color);
+      btn.innerHTML = `${isMovable ? '<span class="rla-pawn-ring"></span>' : ''}<img class="rla-pawn-img" src="${meshPawn || `./assets/game/pawn-${player.color}.png`}" data-mesh="${meshPawn ? 'true' : 'false'}" alt="" draggable="false">${group.length > 1 && idxInGroup === group.length - 1 ? `<span class="rla-stack-badge">${group.length}</span>` : ''}`;
 
+      btn.disabled = !isMovable;
       if (isMovable) btn.addEventListener('click', () => requestMove(token.id));
       layer.append(btn);
     });
