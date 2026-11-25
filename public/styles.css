@@ -850,3 +850,51 @@ html, body {
   outline: 3px solid #ffe680; outline-offset: 2px; border-radius: 12px;
 }
 .v3-home-footer-strip > .v3-rail-btn:has(> .v3-card-image):active {transform: translateY(2px);}
+
+/* Floating side shortcuts: remove only the baked-in box/background via per-icon alpha masks.
+   Original WebP pixels, sizing, labels, and semantic click targets stay unchanged. */
+.v3-rail-btn.sidebar-sheet > .v3-card-image { -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-position: center; mask-position: center; }
+.v3-rail-btn.sidebar-sheet[data-nav="store"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/starter-pack.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/starter-pack.svg"); }
+.v3-rail-btn.sidebar-sheet[data-nav="events"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/events.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/events.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="free-chest"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/bonus-chest.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/bonus-chest.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="vip"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/vip.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/vip.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="daily-reward"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/daily-reward.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/daily-reward.svg"); }
+.v3-rail-btn.sidebar-sheet[data-nav="daily-goals"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/missions.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/missions.svg"); }
+.v3-rail-btn.sidebar-sheet[data-open="leaderboard"] > .v3-card-image { -webkit-mask-image: url("./assets/ui/royal-sidebar-masks/ranks.svg"); mask-image: url("./assets/ui/royal-sidebar-masks/ranks.svg"); }
+
+
+/* Floating Home footer shortcuts — Lucky Spin and Free Coins ONLY.
+   Original approved WebP art, click zones and layout are untouched.  The two
+   SVG alpha masks omit baked outer frames, brown fills and label plaques. */
+.v3-home-footer-strip > .v3-rail-btn[data-open="lucky-spin"] > .v3-card-image,
+.v3-home-footer-strip > .v3-rail-btn[data-open="free-chest"] > .v3-card-image {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+.v3-home-footer-strip > .v3-rail-btn[data-open="lucky-spin"] > .v3-card-image {
+  -webkit-mask-image: url("./assets/ui/royal-footer-masks/lucky-spin.svg");
+  mask-image: url("./assets/ui/royal-footer-masks/lucky-spin.svg");
+}
+.v3-home-footer-strip > .v3-rail-btn[data-open="free-chest"] > .v3-card-image {
+  -webkit-mask-image: url("./assets/ui/royal-footer-masks/free-coins.svg");
+  mask-image: url("./assets/ui/royal-footer-masks/free-coins.svg");
+}
+/* The original words were baked into the old plaques. Render the same labels
+   without a box, while leaving aria-label/keyboard operation on each button. */
+.v3-home-footer-strip > .v3-rail-btn[data-open="lucky-spin"]::after,
+.v3-home-footer-strip > .v3-rail-btn[data-open="free-chest"]::after {
+  content: attr(aria-label);
+  position: absolute;
+  left: 0; right: 0; bottom: 2%;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  font: 900 clamp(7px, 2.35vw, 10px)/1.15 'Segoe UI', system-ui, sans-serif;
+  text-transform: uppercase;
+  color: #fff0c1;
+  text-shadow: 0 1px 2px #2e1008, 0 1px 1px #2e1008;
+}

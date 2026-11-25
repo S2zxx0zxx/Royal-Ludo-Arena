@@ -1,4 +1,4 @@
-const CACHE = 'royal-ludo-arena-v3.1.0-hubs';
+const CACHE = 'royal-ludo-arena-v3.1.2-floating-footer';
 const BASE = [
   './',
   './index.html',
@@ -33,8 +33,17 @@ const BASE = [
   './assets/ui/royal-home-v2/computer.webp',
   './assets/ui/royal-home-v2/pass.webp',
   './assets/ui/royal-home-v2/lucky-spin.webp',
+  './assets/ui/royal-footer-masks/lucky-spin.svg',
+  './assets/ui/royal-footer-masks/free-coins.svg',
   './assets/ui/royal-home-v2/tournament.webp',
   './assets/ui/royal-home-v2/free-coins.webp',
+  './assets/ui/royal-sidebar-masks/starter-pack.svg',
+  './assets/ui/royal-sidebar-masks/events.svg',
+  './assets/ui/royal-sidebar-masks/bonus-chest.svg',
+  './assets/ui/royal-sidebar-masks/vip.svg',
+  './assets/ui/royal-sidebar-masks/daily-reward.svg',
+  './assets/ui/royal-sidebar-masks/missions.svg',
+  './assets/ui/royal-sidebar-masks/ranks.svg',
   './assets/ui/royal-sidebar/starter-pack.webp',
   './assets/ui/royal-sidebar/events.webp',
   './assets/ui/royal-sidebar/bonus-chest.webp',
